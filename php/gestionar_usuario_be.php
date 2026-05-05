@@ -9,6 +9,8 @@ if (!isset($_SESSION['usuario'])) {
 }
 // Incluye conexión a BD
 include 'conexion_be.php';
+// Incluye la función de validación de contraseña
+include 'validar_contrasena.php';
 
 // Eliminar usuario
 if (isset($_GET['accion']) && $_GET['accion'] === 'eliminar') {
@@ -41,6 +43,14 @@ if ($_POST['accion'] === 'agregar') {
     $usuario  = trim($_POST['usuario']);
     $pass     = $_POST['contrasena'];
     $rol      = $_POST['rol'];
+
+    // Valida la contraseña
+    $validacion = validarContrasena($pass);
+    if (!$validacion['valida']) {
+        $mensajes = implode('\n', $validacion['errores']);
+        echo '<script>alert("Errores en la contraseña:\n' . $mensajes . '");window.location="../usuarios.php";</script>';
+        exit();
+    }
 
     // Verificar correo duplicado
     $ck = $conexion->prepare("SELECT id FROM usuarios WHERE correo = ?");
@@ -78,20 +88,27 @@ elseif ($_POST['accion'] === 'editar') {
     $pass    = $_POST['contrasena'];
 
     if ($pass !== '') {
-        // actualizar también la contraseña SIN ENCRIPTAR
+        // Valida la contraseña si se proporciona
+        $validacion = validarContrasena($pass);
+        if (!$validacion['valida']) {
+            $mensajes = implode('\n', $validacion['errores']);
+            echo '<script>alert("Errores en la contraseña:\n' . $mensajes . '");window.location="../usuarios.php";</script>';
+            exit();
+        }
+        // actualizar también la contraseña
         $stmt = $conexion->prepare(
             "UPDATE usuarios SET nombre=?, correo=?, usuario=?, contrasena=?, rol=? WHERE id=?"
         );
-        $stmt->execute([$nombre, $correo, $usuario, $pass, $rol, $id]);
+        $resultado = $stmt->execute([$nombre, $correo, $usuario, $pass, $rol, $id]);
     } else {
         // no cambiar la contraseña
         $stmt = $conexion->prepare(
             "UPDATE usuarios SET nombre=?, correo=?, usuario=?, rol=? WHERE id=?"
         );
-        $stmt->execute([$nombre, $correo, $usuario, $rol, $id]);
+        $resultado = $stmt->execute([$nombre, $correo, $usuario, $rol, $id]);
     }
 
-    if ($stmt->execute()) {
+    if ($resultado) {
         echo '<script>alert("Usuario actualizado correctamente.");window.location="../usuarios.php";</script>';
     } else {
         echo '<script>alert("Error al actualizar el usuario.");window.location="../usuarios.php";</script>';

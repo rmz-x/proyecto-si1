@@ -1,6 +1,8 @@
 <?php
 // Incluye la conexión a la base de datos
 include 'conexion_be.php';
+// Incluye la función de validación de contraseña
+include 'validar_contrasena.php';
 
 // Obtiene y limpia los datos del formulario POST
 $nombre    = trim($_POST['nombre']);     // Nombre completo del usuario
@@ -8,6 +10,15 @@ $correo    = trim($_POST['correo']);     // Correo electrónico
 $usuario   = trim($_POST['usuario']);    // Nombre de usuario
 $contrasena = $_POST['contrasena'];      // Contraseña
 $rol       = 'cliente';                  // Rol por defecto para nuevos usuarios
+
+// Valida la contraseña
+$validacion = validarContrasena($contrasena);
+if (!$validacion['valida']) {
+    // Si la contraseña no es válida, muestra los errores
+    $mensajes = implode('\n', $validacion['errores']);
+    echo '<script>alert("Errores en la contraseña:\n' . $mensajes . '");window.location="../index.php";</script>';
+    exit();
+}
 
 // Verifica si el correo ya existe en la base de datos
 $ck1 = $conexion->prepare("SELECT id FROM usuarios WHERE correo = ?");

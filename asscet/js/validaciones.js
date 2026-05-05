@@ -44,6 +44,61 @@ function esCorreoValido(correo) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo);
 }
 
+/**
+ * Valida que una contraseña cumpla con los criterios de seguridad
+ * @param {string} contrasena La contraseña a validar
+ * @returns {object} { valida: boolean, errores: array }
+ */
+function validarFormatoContrasena(contrasena) {
+    const errores = [];
+    
+    // Verificar longitud mínima
+    if (contrasena.length < 8) {
+        errores.push("La contraseña debe tener al menos 8 caracteres.");
+    }
+    
+    // Verificar que contenga al menos una letra mayúscula
+    if (!/[A-Z]/.test(contrasena)) {
+        errores.push("La contraseña debe contener al menos una letra mayúscula.");
+    }
+    
+    // Verificar que contenga al menos una letra minúscula
+    if (!/[a-z]/.test(contrasena)) {
+        errores.push("La contraseña debe contener al menos una letra minúscula.");
+    }
+    
+    // Verificar que contenga al menos un número
+    if (!/[0-9]/.test(contrasena)) {
+        errores.push("La contraseña debe contener al menos un número.");
+    }
+    
+    return {
+        valida: errores.length === 0,
+        errores: errores
+    };
+}
+
+/**
+ * Configura el toggle de mostrar/ocultar contraseña para todos los campos
+ */
+function inicializarTogglePassword() {
+    document.querySelectorAll('.password-toggle-btn').forEach(btn => {
+        btn.addEventListener('click', function (e) {
+            e.preventDefault();
+            const input = this.previousElementSibling;
+            
+            if (input && (input.type === 'password' || input.type === 'text')) {
+                // Alternar tipo de input
+                input.type = input.type === 'password' ? 'text' : 'password';
+                
+                // Cambiar el texto del botón
+                this.textContent = input.type === 'password' ? '👁️' : '🙈';
+                this.title = input.type === 'password' ? 'Mostrar contraseña' : 'Ocultar contraseña';
+            }
+        });
+    });
+}
+
 // Función para validar el formulario de login
 function validarLogin(e) {
     const form    = document.querySelector(".formulario_login");
@@ -112,9 +167,13 @@ function validarRegistro(e) {
     if (pass.value === "") {
         mostrarError(pass, "La contraseña es obligatoria.");
         esValido = false;
-    } else if (pass.value.length < 6) {
-        mostrarError(pass, "La contraseña debe tener al menos 6 caracteres.");
-        esValido = false;
+    } else {
+        const validacion = validarFormatoContrasena(pass.value);
+        if (!validacion.valida) {
+            // Mostrar el primer error
+            mostrarError(pass, validacion.errores[0]);
+            esValido = false;
+        }
     }
  
     if (!esValido) e.preventDefault();
@@ -222,12 +281,17 @@ function validarUsuario(e) {
         esValido = false;
     }
  
+    // Validar contraseña solo si es requerida o si se proporciona
     if (!esEditar && pass.value === "") {
         mostrarError(pass, "La contraseña es obligatoria al crear un usuario.");
         esValido = false;
-    } else if (pass.value !== "" && pass.value.length < 6) {
-        mostrarError(pass, "La contraseña debe tener al menos 6 caracteres.");
-        esValido = false;
+    } else if (pass.value !== "") {
+        const validacion = validarFormatoContrasena(pass.value);
+        if (!validacion.valida) {
+            // Mostrar el primer error
+            mostrarError(pass, validacion.errores[0]);
+            esValido = false;
+        }
     }
  
     if (rol.value === "") {
@@ -237,9 +301,56 @@ function validarUsuario(e) {
  
     if (!esValido) e.preventDefault();
 }
- 
+
+/**
+ * Valida el formulario de perfil de usuario
+ * @param {Event} e El evento del formulario
+ */
+function validarPerfil(e) {
+    const form            = e.target;
+    const nombre          = form.querySelector('input[name="nombre"]');
+    const usuario         = form.querySelector('input[name="usuario"]');
+    const contrasenaNueva = form.querySelector('input[name="contrasena_nueva"]');
+    let   esValido        = true;
+
+    limpiarTodosLosErrores(form);
+
+    if (nombre.value.trim() === "") {
+        mostrarError(nombre, "El nombre completo es obligatorio.");
+        esValido = false;
+    } else if (nombre.value.trim().length < 3) {
+        mostrarError(nombre, "El nombre debe tener al menos 3 caracteres.");
+        esValido = false;
+    }
+
+    if (usuario.value.trim() === "") {
+        mostrarError(usuario, "El nombre de usuario es obligatorio.");
+        esValido = false;
+    } else if (usuario.value.trim().length < 3) {
+        mostrarError(usuario, "El usuario debe tener al menos 3 caracteres.");
+        esValido = false;
+    } else if (/\s/.test(usuario.value)) {
+        mostrarError(usuario, "El usuario no puede contener espacios.");
+        esValido = false;
+    }
+
+    // Validar contraseña solo si se proporciona
+    if (contrasenaNueva && contrasenaNueva.value !== "") {
+        const validacion = validarFormatoContrasena(contrasenaNueva.value);
+        if (!validacion.valida) {
+            mostrarError(contrasenaNueva, validacion.errores[0]);
+            esValido = false;
+        }
+    }
+
+    if (!esValido) e.preventDefault();
+}
+
 document.addEventListener("DOMContentLoaded", function () {
  
+    // Inicializar toggle de contraseña
+    inicializarTogglePassword();
+
     //Login
     const fLogin = document.querySelector(".formulario_login");
     if (fLogin) {
@@ -276,6 +387,15 @@ document.addEventListener("DOMContentLoaded", function () {
         fUser.querySelectorAll("input, select").forEach(campo => {
             campo.addEventListener("input",  () => limpiarError(campo));
             campo.addEventListener("change", () => limpiarError(campo));
+        });
+    }
+
+    // Perfil de usuario
+    const formPerfil = document.querySelector('form[action="mi_perfil.php"]');
+    if (formPerfil) {
+        formPerfil.addEventListener("submit", validarPerfil);
+        formPerfil.querySelectorAll("input").forEach(input => {
+            input.addEventListener("input", () => limpiarError(input));
         });
     }
  

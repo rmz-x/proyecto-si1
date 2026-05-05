@@ -91,10 +91,20 @@ main{
 
 .contenedor_login-register form{
     width: 100%;
-    padding: 80px 20px;
+    padding: 40px 20px;
     background: #fff;
     position: absolute;
+    /* position: relative; /* en lugar de absolute */
     border-radius: 20px;
+    /*z-index: 2;         /* asegura que esté encima */
+}
+
+/*new agggg*/
+.error-message {
+    color: red;
+    margin-top: 12px;
+    font-size: 14px;
+    display: block;
 }
 
 .contenedor_login-register form h2{
@@ -112,6 +122,10 @@ main{
     background: #F2F2F2;
     font-size: 16px;
     outline: none;
+
+    /* alineacion */
+    height: 42px;
+    line-height: 42px;
 }
 
 .contenedor_login-register form button{
@@ -163,4 +177,112 @@ main{
         position: relative;
     }
     
+}
+
+/* Estilos para el toggle de contraseña */
+
+.password-wrapper {
+    position: relative;
+    /*display: flex; MENSAJE ALERTA*/
+    align-items: center; 
+    width: 100%;
+    margin-top: 20px;
+}
+
+.password-wrapper input {
+    width: 100%;
+    padding: 10px;
+    padding-right: 40px;
+    border: none;
+    background: #F2F2F2;
+    font-size: 16px;
+    outline: none;
+}
+
+.password-wrapper input:focus {
+    background: #E8F1FF;
+    border: 1px solid #46A2FD;
+}
+
+
+.password-toggle-btn {
+    position: absolute;
+    right: 8px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 18px;
+    padding: 5px 8px;
+    outline: none;
+    transition: transform 200ms;
+}
+
+.password-toggle-btn:hover {
+    transform: scale(1.1);
+}
+
+.password-toggle-btn:active {
+    transform: scale(0.95);
+}
+
+
+
+/* BOTÓN MOSTRAR CONTRASEÑA */
+
+.contenedor_login-register form .password-toggle-btn {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-33%);
+
+    background: transparent;
+    border: none;
+    padding: 0;
+    margin: 0;
+
+    cursor: pointer;
+    font-size: 18px;
+    color: #666;
+}
+
+
+.contenedor_login-register form .password-toggle-btn i {
+    pointer-events: none;
+}
+
+.password-wrapper {
+    position: relative;
+    width: 100%;
+    margin-top: 20px;
+}
+
+
+.password-wrapper input {
+    width: 100%;
+    padding: 10px;
+    padding-right: 45px;
+}
+
+
+/* Linea para el boton volver al login */
+.btn-submit,
+.btn-volver {
+    display: inline-block;
+    width: 100%;          
+    padding: 10px;      
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    cursor: pointer;
+    text-align: center;
+}
+
+.btn-volver {
+    background: #dc3545;
+    color: #fff;
+}
+.btn-volver:hover {
+    background: #a71d2a;
 }

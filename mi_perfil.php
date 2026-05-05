@@ -3,6 +3,8 @@
 require_once 'include/auth_check.php';
 // Incluye conexión a BD
 include 'php/conexion_be.php';
+// Incluye la función de validación de contraseña
+include 'php/validar_contrasena.php';
 
 // Consulta datos del usuario actual
 $stmt = $conexion->prepare("SELECT * FROM usuarios WHERE id = ?");
@@ -26,20 +28,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $mensaje  = 'Ese nombre de usuario ya está en uso.';
         $tipo_msg = 'error';
     } else {
+        // Si se proporciona una nueva contraseña, validarla
         if ($pass_nueva !== '') {
-            $stmt2 = $conexion->prepare("UPDATE usuarios SET nombre=?, usuario=?, contrasena=? WHERE id=?");
-            $stmt2->execute([$nombre, $usuario, $pass_nueva, $_SESSION['user_id']]);
+            $validacion = validarContrasena($pass_nueva);
+            if (!$validacion['valida']) {
+                $mensaje  = 'Errores en la contraseña: ' . implode(', ', $validacion['errores']);
+                $tipo_msg = 'error';
+            } else {
+                $stmt2 = $conexion->prepare("UPDATE usuarios SET nombre=?, usuario=?, contrasena=? WHERE id=?");
+                $stmt2->execute([$nombre, $usuario, $pass_nueva, $_SESSION['user_id']]);
+                $_SESSION['nombre'] = $nombre;
+                $mensaje  = 'Perfil actualizado correctamente.';
+                $tipo_msg = 'ok';
+
+                $stmt3 = $conexion->prepare("SELECT * FROM usuarios WHERE id = ?");
+                $stmt3->execute([$_SESSION['user_id']]);
+                $user = $stmt3->fetch(PDO::FETCH_ASSOC);
+            }
         } else {
             $stmt2 = $conexion->prepare("UPDATE usuarios SET nombre=?, usuario=? WHERE id=?");
             $stmt2->execute([$nombre, $usuario, $_SESSION['user_id']]);
-        }
-        $_SESSION['nombre'] = $nombre;
-        $mensaje  = 'Perfil actualizado correctamente.';
-        $tipo_msg = 'ok';
+            $_SESSION['nombre'] = $nombre;
+            $mensaje  = 'Perfil actualizado correctamente.';
+            $tipo_msg = 'ok';
 
-        $stmt3 = $conexion->prepare("SELECT * FROM usuarios WHERE id = ?");
-        $stmt3->execute([$_SESSION['user_id']]);
-        $user = $stmt3->fetch(PDO::FETCH_ASSOC);
+            $stmt3 = $conexion->prepare("SELECT * FROM usuarios WHERE id = ?");
+            $stmt3->execute([$_SESSION['user_id']]);
+            $user = $stmt3->fetch(PDO::FETCH_ASSOC);
+        }
     }
 }
 
@@ -116,7 +132,10 @@ $nombreUsuario = $_SESSION['nombre'] ?? $_SESSION['usuario'];
                     <p class="section-label">Cambiar contraseña</p>
                     <div class="form-group">
                         <label>Nueva contraseña <span style="font-weight:400;color:#6c757d">(dejar vacío para no cambiar)</span></label>
-                        <input type="password" name="contrasena_nueva" placeholder="Nueva contraseña">
+                        <div class="password-wrapper" style="position:relative">
+                            <input type="password" name="contrasena_nueva" placeholder="Nueva contraseña">
+                            <button class="password-toggle-btn" title="Mostrar contraseña">👁️</button>
+                        </div>
                     </div>
 
                     <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:20px">
@@ -128,5 +147,6 @@ $nombreUsuario = $_SESSION['nombre'] ?? $_SESSION['usuario'];
         </div>
     </div>
 </div>
+<script src="asscet/js/validaciones.js"></script>
 </body>
 </html>

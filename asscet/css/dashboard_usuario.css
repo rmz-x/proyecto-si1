@@ -215,6 +215,53 @@ a { text-decoration: none; color: inherit; }
 }
 .btn-detalle:hover { background:#185FA5; color:#fff; }
  
+/* Estilos para el toggle de contraseña en formularios */
+.password-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+
+.password-wrapper input {
+    width: 100%;
+    padding: 9px 12px;
+    padding-right: 40px;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    font-size: 13px;
+    font-family: inherit;
+    outline: none;
+    background: #f8f9fa;
+    transition: border-color 200ms, background 200ms;
+}
+
+.password-wrapper input:focus {
+    border-color: #64b5f6;
+    background: #fff;
+}
+
+.password-toggle-btn {
+    position: absolute;
+    right: 10px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    padding: 5px 8px;
+    outline: none;
+    transition: transform 200ms;
+    user-select: none;
+}
+
+.password-toggle-btn:hover {
+    transform: scale(1.1);
+}
+
+.password-toggle-btn:active {
+    transform: scale(0.95);
+}
+
 @media (max-width:768px) {
     .sidebar { width:60px; }
     .logo-title, .logo-sub, .nav-section, .nav-dot+*, .nav-logout { display:none; }

@@ -114,7 +114,10 @@ $usuarios = $conexion->query("SELECT * FROM usuarios ORDER BY nombre");
                 </div>
                 <div class="form-group">
                     <label>Contraseña <span id="passNote" style="color:#6c757d;font-weight:400">(requerida)</span></label>
-                    <input type="password" name="contrasena" id="userPass" placeholder="Mínimo 6 caracteres">
+                    <div class="password-wrapper" style="position:relative">
+                        <input type="password" name="contrasena" id="userPass" placeholder="Mínimo 6 caracteres">
+                        <button class="password-toggle-btn" title="Mostrar contraseña">👁️</button>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label>Rol</label>

@@ -45,7 +45,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // En localhost: mostrar el código en pantalla en lugar de enviar email
         // En producción, descomentar el código de PHPMailer arriba
-        $message = "✅ <strong>Código de recuperación generado:</strong> <span style='font-size:24px; color:#28a745; font-weight:bold;'>$codigo</span><br><small>(Este código expira en 15 minutos)</small>";
+        $mail = new PHPMailer(true);
+
+            try {
+                $mail->isSMTP();
+                $mail->Host = 'sandbox.smtp.mailtrap.io';
+                $mail->SMTPAuth = true;
+                $mail->Port = 2525;
+                $mail->Username = '4962d2024fffb3';
+                $mail->Password = 'c24995f59a1583';
+
+                $mail->setFrom('no-reply@lorent.com', 'Lorent Inmobiliaria');
+                $mail->addAddress($correo, $user['nombre']);
+                $mail->Subject = 'Recuperación de contraseña';
+                $mail->Body = "Hola {$user['nombre']},\n\nTu codigo de recuperacion es: $codigo\nEste codigo expira en 15 minutos.\n\nEquipo Lorent";
+
+                $mail->send();
+                $message = "✅ Se envió un correo con tu código de recuperación.";
+                $codigo_generado = true;
+            } catch (Exception $e) {
+                $message = "❌ Error al enviar el correo: {$mail->ErrorInfo}";
+            }
+
         
         // Variable para indicar que se generó el código exitosamente
         $codigo_generado = true;
@@ -90,7 +111,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </form>
         <?php endif; ?>
         
-        <p style="text-align:center;margin-top:20px"><a href="index.php">Volver al Login</a></p>
+        <!-- <p style="text-align:center;margin-top:20px"><a href="index.php">Volver al Login</a></p> -->
+
+        <p style="text-align:center;margin-top:20px">
+            <a href="index.php" class="btn-volver">Volver al Login</a>
+        </p>
+
+
+
     </div>
 </body>
 </html>

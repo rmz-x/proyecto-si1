@@ -21,6 +21,7 @@ if(isset($_SESSION['usuario'])){
 
     <!-- Enlace al archivo CSS principal para estilos -->
     <link rel="stylesheet" href="asscet/css/estilos.css">
+
 </head>
 <body>
 
@@ -56,8 +57,11 @@ if(isset($_SESSION['usuario'])){
                     <h2>Iniciar Sesión</h2>
                     <!-- Campo para el correo electrónico -->
                     <input type="text" placeholder="Correo Electronico" name="correo">
-                    <!-- Campo para la contraseña -->
-                    <input type="password" placeholder="Contraseña" name="contrasena">
+                    <!-- Campo para la contraseña con toggle -->
+                    <div class="password-wrapper">
+                        <input type="password" placeholder="Contraseña" name="contrasena">
+                        <button class="password-toggle-btn" title="Mostrar contraseña">👁️</button>
+                    </div>
                     <!-- Botón para enviar el formulario -->
                     <button>Entrar</button>
                     <!-- Enlace para recuperar contraseña si se olvida -->
@@ -72,8 +76,13 @@ if(isset($_SESSION['usuario'])){
                     <input type="text" placeholder="Correo Electronico" name="correo">
                     <!-- Campo para el nombre de usuario -->
                     <input type="text" placeholder="Usuario" name="usuario">
-                    <!-- Campo para la contraseña -->
-                    <input type="password" placeholder="Contraseña" name="contrasena">
+                    <!-- Campo para la contraseña con toggle -->
+                    <div class="password-wrapper">
+                        <input type="password" placeholder="Contraseña" name="contrasena">
+
+                    <button class="password-toggle-btn" title="Mostrar contraseña">👁️</button>
+
+                    </div>
                     <!-- Botón para enviar el formulario de registro -->
                     <button>Registrarse</button>
                 </form>
