@@ -1,17 +1,20 @@
 <?php
+// Verifica que el usuario sea administrador antes de mostrar la página
 require_once 'include/auth_admin.php';
+// Incluye la conexión a la base de datos
 include 'php/conexion_be.php';
 
-$total_props  = mysqli_fetch_assoc(mysqli_query($conexion,
-    "SELECT COUNT(*) AS n FROM propiedades"))['n'];
-$disp_props   = mysqli_fetch_assoc(mysqli_query($conexion,
-    "SELECT COUNT(*) AS n FROM propiedades WHERE estado='Disponible'"))['n'];
-$total_users  = mysqli_fetch_assoc(mysqli_query($conexion,
-    "SELECT COUNT(*) AS n FROM usuarios"))['n'];
-$total_ventas = mysqli_fetch_assoc(mysqli_query($conexion,
-    "SELECT COUNT(*) AS n FROM propiedades WHERE estado='Vendido'"))['n'];
+// Consulta el total de propiedades en la base de datos
+$total_props  = $conexion->query("SELECT COUNT(*) AS n FROM propiedades")->fetch(PDO::FETCH_ASSOC)['n'];
+// Consulta las propiedades disponibles
+$disp_props   = $conexion->query("SELECT COUNT(*) AS n FROM propiedades WHERE estado='Disponible'")->fetch(PDO::FETCH_ASSOC)['n'];
+// Consulta el total de usuarios registrados
+$total_users  = $conexion->query("SELECT COUNT(*) AS n FROM usuarios")->fetch(PDO::FETCH_ASSOC)['n'];
+// Consulta las propiedades vendidas
+$total_ventas = $conexion->query("SELECT COUNT(*) AS n FROM propiedades WHERE estado='Vendido'")->fetch(PDO::FETCH_ASSOC)['n'];
 
-$ultimas = mysqli_query($conexion,
+// Consulta las últimas 5 propiedades registradas con información del agente
+$ultimas = $conexion->query(
     "SELECT p.*, u.nombre AS agente
      FROM propiedades p
      LEFT JOIN usuarios u ON p.agente_id = u.id
@@ -23,27 +26,31 @@ $ultimas = mysqli_query($conexion,
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard — Lorent Inmobiliaria</title>
+    <!-- Fuentes de Google para el estilo -->
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Estilos CSS principales -->
     <link rel="stylesheet" href="asscet/css/dashboard.css">
 </head>
 <body>
 <div class="layout">
 
+    <!-- Incluye el menú lateral -->
     <?php include 'include/sidebar.php'; ?>
 
     <div class="main">
         <div class="topbar">
             <span class="topbar-title">Dashboard</span>
             <div class="user-info">
+                <!-- Avatar con las iniciales del usuario -->
                 <div class="user-avatar"><?= strtoupper(substr($_SESSION['usuario'], 0, 2)) ?></div>
                 <span class="user-email"><?= htmlspecialchars($_SESSION['usuario']) ?></span>
             </div>
         </div>
 
-        <!-- contenido -->
+        <!-- Contenido principal de la página -->
         <div class="content">
 
-            <!-- estadisticas -->
+            <!-- Sección de estadísticas -->
             <div class="stats">
                 <div class="stat-card">
                     <p class="stat-label">Total propiedades</p>
@@ -78,10 +85,10 @@ $ultimas = mysqli_query($conexion,
                         </tr>
                     </thead>
                     <tbody>
-                    <?php if(mysqli_num_rows($ultimas) == 0): ?>
+                    <?php if($ultimas->rowCount() == 0): ?>
                         <tr><td colspan="6" style="text-align:center;color:#6c757d;padding:20px">No hay propiedades aún.</td></tr>
                     <?php else: ?>
-                        <?php while($p = mysqli_fetch_assoc($ultimas)): ?>
+                        <?php while($p = $ultimas->fetch(PDO::FETCH_ASSOC)): ?>
                         <tr>
                             <td><?= htmlspecialchars($p['titulo']) ?></td>
                             <td><?= htmlspecialchars($p['zona']) ?></td>

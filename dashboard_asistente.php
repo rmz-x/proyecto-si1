@@ -1,29 +1,28 @@
 <?php
+// Verifica que el usuario sea asistente o admin
 require_once 'include/auth_asistente.php';
+// Incluye conexión a BD
 include 'php/conexion_be.php';
 
+// Obtiene nombre del usuario
 $nombreUsuario = $_SESSION['nombre'] ?? $_SESSION['usuario'];
 
-// estadisticas generales
-$total_clientes  = mysqli_fetch_assoc(mysqli_query($conexion,
-    "SELECT COUNT(*) AS n FROM usuarios WHERE rol='cliente'"))['n'];
-$visitas_pend    = mysqli_fetch_assoc(mysqli_query($conexion,
-    "SELECT COUNT(*) AS n FROM solicitudes_visita WHERE estado='pendiente'"))['n'];
-$visitas_hoy     = mysqli_fetch_assoc(mysqli_query($conexion,
-    "SELECT COUNT(*) AS n FROM solicitudes_visita WHERE fecha_solicitada=CURDATE()"))['n'];
-$total_props     = mysqli_fetch_assoc(mysqli_query($conexion,
-    "SELECT COUNT(*) AS n FROM propiedades WHERE estado='Disponible'"))['n'];
+// Estadísticas generales para el asistente
+$total_clientes  = $conexion->query("SELECT COUNT(*) AS n FROM usuarios WHERE rol='cliente'")->fetch(PDO::FETCH_ASSOC)['n'];
+$visitas_pend    = $conexion->query("SELECT COUNT(*) AS n FROM solicitudes_visita WHERE estado='pendiente'")->fetch(PDO::FETCH_ASSOC)['n'];
+$visitas_hoy     = $conexion->query("SELECT COUNT(*) AS n FROM solicitudes_visita WHERE fecha_solicitada=CURDATE()")->fetch(PDO::FETCH_ASSOC)['n'];
+$total_props     = $conexion->query("SELECT COUNT(*) AS n FROM propiedades WHERE estado='Disponible'")->fetch(PDO::FETCH_ASSOC)['n'];
 
-// ultimas solicitudes de visita
-$solicitudes = mysqli_query($conexion,
+// Últimas solicitudes de visita
+$solicitudes = $conexion->query(
     "SELECT sv.*, p.titulo AS propiedad, u.nombre AS cliente
      FROM solicitudes_visita sv
      JOIN propiedades p ON sv.propiedad_id = p.id
      JOIN usuarios u    ON sv.cliente_id   = u.id
      ORDER BY sv.fecha_registro DESC LIMIT 8");
 
-// ultimos clientes registrados
-$clientes = mysqli_query($conexion,
+// Últimos clientes registrados
+$clientes = $conexion->query(
     "SELECT id, nombre, correo, usuario FROM usuarios WHERE rol='cliente' ORDER BY id DESC LIMIT 5");
 ?>
 <!DOCTYPE html>
@@ -79,10 +78,10 @@ $clientes = mysqli_query($conexion,
                         <tr><th>Cliente</th><th>Propiedad</th><th>Fecha</th><th>Estado</th></tr>
                     </thead>
                     <tbody>
-                    <?php if(mysqli_num_rows($solicitudes)==0): ?>
+                    <?php if($solicitudes->rowCount()==0): ?>
                         <tr><td colspan="4" style="text-align:center;color:#6c757d;padding:20px">No hay solicitudes registradas.</td></tr>
                     <?php else: ?>
-                        <?php while($s=mysqli_fetch_assoc($solicitudes)): ?>
+                        <?php while($s=$solicitudes->fetch(PDO::FETCH_ASSOC)): ?>
                         <tr>
                             <td><?= htmlspecialchars($s['cliente']) ?></td>
                             <td><?= htmlspecialchars($s['propiedad']) ?></td>
@@ -115,10 +114,10 @@ $clientes = mysqli_query($conexion,
                         <tr><th>#</th><th>Nombre</th><th>Correo</th><th>Usuario</th></tr>
                     </thead>
                     <tbody>
-                    <?php if(mysqli_num_rows($clientes)==0): ?>
-                        <tr><td colspan="4" style="text-align:center;color:#6c757d;padding:20px">No hay clientes aún.</td></tr>
+                    <?php if($clientes->rowCount()==0): ?>
+                        <tr><td colspan="4" style="text-align:center;color:#6c757d;padding:20px">No hay clientes registrados.</td></tr>
                     <?php else: ?>
-                        <?php while($c=mysqli_fetch_assoc($clientes)): ?>
+                        <?php while($c=$clientes->fetch(PDO::FETCH_ASSOC)): ?>
                         <tr>
                             <td><?= $c['id'] ?></td>
                             <td><?= htmlspecialchars($c['nombre']) ?></td>

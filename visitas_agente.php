@@ -1,17 +1,19 @@
 <?php
+// Verifica que sea agente o admin
 require_once 'include/auth_agente.php';
+// Incluye conexión a BD
 include 'php/conexion_be.php';
 
 $agente_id     = $_SESSION['user_id'];
 $nombreUsuario = $_SESSION['nombre'] ?? $_SESSION['usuario'];
 
-// filtro por estado
+// Filtro por estado
 $estados_validos = ['pendiente','confirmada','cancelada'];
 $filtro = (isset($_GET['estado']) && in_array($_GET['estado'], $estados_validos)) ? $_GET['estado'] : 'todas';
 
 $where = $filtro !== 'todas' ? "AND sv.estado='$filtro'" : '';
 
-$visitas = mysqli_query($conexion,
+$visitas = $conexion->query(
     "SELECT sv.*, p.titulo AS propiedad, p.zona, u.nombre AS cliente, u.correo AS correo_cliente
      FROM solicitudes_visita sv
      JOIN propiedades p ON sv.propiedad_id = p.id
@@ -61,7 +63,7 @@ $visitas = mysqli_query($conexion,
                 <div class="card-header">
                     <span class="card-title">
                         Visitas
-                        <span style="font-size:12px;color:#6c757d;font-weight:400;margin-left:6px">(<?= mysqli_num_rows($visitas) ?> registros)</span>
+                        <span style="font-size:12px;color:#6c757d;font-weight:400;margin-left:6px">(<?= $visitas->rowCount() ?> registros)</span>
                     </span>
                 </div>
                 <table>
@@ -69,10 +71,10 @@ $visitas = mysqli_query($conexion,
                         <tr><th>Propiedad</th><th>Cliente</th><th>Correo</th><th>Fecha</th><th>Mensaje</th><th>Estado</th><th>Acción</th></tr>
                     </thead>
                     <tbody>
-                    <?php if(mysqli_num_rows($visitas)==0): ?>
+                    <?php if($visitas->rowCount()==0): ?>
                         <tr><td colspan="7" style="text-align:center;color:#6c757d;padding:20px">No hay solicitudes con ese filtro.</td></tr>
                     <?php else: ?>
-                        <?php while($v=mysqli_fetch_assoc($visitas)): ?>
+                        <?php while($v=$visitas->fetch(PDO::FETCH_ASSOC)): ?>
                         <tr>
                             <td><?= htmlspecialchars($v['propiedad']) ?></td>
                             <td><?= htmlspecialchars($v['cliente']) ?></td>

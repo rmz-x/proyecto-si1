@@ -1,24 +1,24 @@
 <?php
-/* agregar, editar y eliminar usuarios */
+/* Agregar, editar y eliminar usuarios */
+// Inicia sesión
 session_start();
+// Verifica si el usuario está logueado
 if (!isset($_SESSION['usuario'])) {
     header("location: ../index.php");
     exit();
 }
+// Incluye conexión a BD
 include 'conexion_be.php';
 
-// eliminar
+// Eliminar usuario
 if (isset($_GET['accion']) && $_GET['accion'] === 'eliminar') {
     $id = (int)$_GET['id'];
 
-    // no permitir eliminar al usuario actual
+    // No permitir eliminar al usuario actual
     $emailActual = $_SESSION['usuario'];
     $check = $conexion->prepare("SELECT correo FROM usuarios WHERE id = ?");
-    $check->bind_param("i", $id);
-    $check->execute();
-    $check->bind_result($correoUsuario);
-    $check->fetch();
-    $check->close();
+    $check->execute([$id]);
+    $correoUsuario = $check->fetch(PDO::FETCH_ASSOC)['correo'] ?? null;
 
     if ($correoUsuario === $emailActual) {
         echo '<script>alert("No puedes eliminar tu propia cuenta.");window.location="../usuarios.php";</script>';
@@ -26,17 +26,15 @@ if (isset($_GET['accion']) && $_GET['accion'] === 'eliminar') {
     }
 
     $stmt = $conexion->prepare("DELETE FROM usuarios WHERE id = ?");
-    $stmt->bind_param("i", $id);
-    if ($stmt->execute()) {
+    if ($stmt->execute([$id])) {
         echo '<script>alert("Usuario eliminado correctamente.");window.location="../usuarios.php";</script>';
     } else {
         echo '<script>alert("Error al eliminar el usuario.");window.location="../usuarios.php";</script>';
     }
-    $stmt->close();
     exit();
 }
 
-// agregar
+// Agregar usuario
 if ($_POST['accion'] === 'agregar') {
     $nombre   = trim($_POST['nombre']);
     $correo   = trim($_POST['correo']);
@@ -44,38 +42,30 @@ if ($_POST['accion'] === 'agregar') {
     $pass     = $_POST['contrasena'];
     $rol      = $_POST['rol'];
 
-    // verificar correo duplicado
+    // Verificar correo duplicado
     $ck = $conexion->prepare("SELECT id FROM usuarios WHERE correo = ?");
-    $ck->bind_param("s", $correo);
-    $ck->execute();
-    $ck->store_result();
-    if ($ck->num_rows > 0) {
+    $ck->execute([$correo]);
+    if ($ck->rowCount() > 0) {
         echo '<script>alert("Ese correo ya está registrado.");window.location="../usuarios.php";</script>';
         exit();
     }
-    $ck->close();
 
-    // verificar usuario duplicado
+    // Verificar usuario duplicado
     $ck2 = $conexion->prepare("SELECT id FROM usuarios WHERE usuario = ?");
-    $ck2->bind_param("s", $usuario);
-    $ck2->execute();
-    $ck2->store_result();
-    if ($ck2->num_rows > 0) {
+    $ck2->execute([$usuario]);
+    if ($ck2->rowCount() > 0) {
         echo '<script>alert("Ese nombre de usuario ya existe.");window.location="../usuarios.php";</script>';
         exit();
     }
-    $ck2->close();
 
     $stmt = $conexion->prepare(
         "INSERT INTO usuarios (nombre, correo, usuario, contrasena, rol) VALUES (?, ?, ?, ?, ?)"
     );
-    $stmt->bind_param("sssss", $nombre, $correo, $usuario, $pass, $rol);
-    if ($stmt->execute()) {
+    if ($stmt->execute([$nombre, $correo, $usuario, $pass, $rol])) {
         echo '<script>alert("Usuario agregado exitosamente.");window.location="../usuarios.php";</script>';
     } else {
         echo '<script>alert("Error al agregar el usuario.");window.location="../usuarios.php";</script>';
     }
-    $stmt->close();
 }
 
 // editar
@@ -92,13 +82,13 @@ elseif ($_POST['accion'] === 'editar') {
         $stmt = $conexion->prepare(
             "UPDATE usuarios SET nombre=?, correo=?, usuario=?, contrasena=?, rol=? WHERE id=?"
         );
-        $stmt->bind_param("sssssi", $nombre, $correo, $usuario, $pass, $rol, $id);
+        $stmt->execute([$nombre, $correo, $usuario, $pass, $rol, $id]);
     } else {
         // no cambiar la contraseña
         $stmt = $conexion->prepare(
             "UPDATE usuarios SET nombre=?, correo=?, usuario=?, rol=? WHERE id=?"
         );
-        $stmt->bind_param("ssssi", $nombre, $correo, $usuario, $rol, $id);
+        $stmt->execute([$nombre, $correo, $usuario, $rol, $id]);
     }
 
     if ($stmt->execute()) {
@@ -106,7 +96,6 @@ elseif ($_POST['accion'] === 'editar') {
     } else {
         echo '<script>alert("Error al actualizar el usuario.");window.location="../usuarios.php";</script>';
     }
-    $stmt->close();
 }
 
-mysqli_close($conexion);
+?>

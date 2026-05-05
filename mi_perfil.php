@@ -1,50 +1,46 @@
 <?php
+// Verifica que el usuario esté logueado
 require_once 'include/auth_check.php';
+// Incluye conexión a BD
 include 'php/conexion_be.php';
 
+// Consulta datos del usuario actual
 $stmt = $conexion->prepare("SELECT * FROM usuarios WHERE id = ?");
-$stmt->bind_param("i", $_SESSION['user_id']);
-$stmt->execute();
-$user = $stmt->get_result()->fetch_assoc();
-$stmt->close();
+$stmt->execute([$_SESSION['user_id']]);
+$user = $stmt->fetch(PDO::FETCH_ASSOC);
 
 $mensaje  = '';
 $tipo_msg = '';
 
+// Procesar formulario de actualización de perfil
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nombre    = trim($_POST['nombre']);
     $usuario   = trim($_POST['usuario']);
     $pass_nueva = $_POST['contrasena_nueva'];
 
+    // Verificar si el usuario ya existe
     $ck = $conexion->prepare("SELECT id FROM usuarios WHERE usuario = ? AND id != ?");
-    $ck->bind_param("si", $usuario, $_SESSION['user_id']);
-    $ck->execute();
-    $ck->store_result();
+    $ck->execute([$usuario, $_SESSION['user_id']]);
 
-    if ($ck->num_rows > 0) {
+    if ($ck->rowCount() > 0) {
         $mensaje  = 'Ese nombre de usuario ya está en uso.';
         $tipo_msg = 'error';
     } else {
         if ($pass_nueva !== '') {
             $stmt2 = $conexion->prepare("UPDATE usuarios SET nombre=?, usuario=?, contrasena=? WHERE id=?");
-            $stmt2->bind_param("sssi", $nombre, $usuario, $pass_nueva, $_SESSION['user_id']);
+            $stmt2->execute([$nombre, $usuario, $pass_nueva, $_SESSION['user_id']]);
         } else {
             $stmt2 = $conexion->prepare("UPDATE usuarios SET nombre=?, usuario=? WHERE id=?");
-            $stmt2->bind_param("ssi", $nombre, $usuario, $_SESSION['user_id']);
+            $stmt2->execute([$nombre, $usuario, $_SESSION['user_id']]);
         }
-        $stmt2->execute();
-        $stmt2->close();
         $_SESSION['nombre'] = $nombre;
         $mensaje  = 'Perfil actualizado correctamente.';
         $tipo_msg = 'ok';
 
         $stmt3 = $conexion->prepare("SELECT * FROM usuarios WHERE id = ?");
-        $stmt3->bind_param("i", $_SESSION['user_id']);
-        $stmt3->execute();
-        $user = $stmt3->get_result()->fetch_assoc();
-        $stmt3->close();
+        $stmt3->execute([$_SESSION['user_id']]);
+        $user = $stmt3->fetch(PDO::FETCH_ASSOC);
     }
-    $ck->close();
 }
 
 $nombreUsuario = $_SESSION['nombre'] ?? $_SESSION['usuario'];

@@ -1,12 +1,14 @@
 <?php
+// Verifica que sea admin
 require_once 'include/auth_admin.php';
+// Incluye conexión a BD
 include 'php/conexion_be.php';
 
-//obtener agentes para el select del formulario
-$agentes = mysqli_query($conexion, "SELECT id, nombre FROM usuarios ORDER BY nombre");
+// Obtener agentes para el select del formulario
+$agentes = $conexion->query("SELECT id, nombre FROM usuarios ORDER BY nombre")->fetchAll(PDO::FETCH_ASSOC);
 
-//obtener todas las propiedades
-$props = mysqli_query($conexion,
+// Obtener todas las propiedades
+$props = $conexion->query(
     "SELECT p.*, u.nombre AS agente
      FROM propiedades p
      LEFT JOIN usuarios u ON p.agente_id = u.id
@@ -57,10 +59,10 @@ $props = mysqli_query($conexion,
                         </tr>
                     </thead>
                     <tbody>
-                    <?php if(mysqli_num_rows($props) == 0): ?>
+                    <?php if($props->rowCount() == 0): ?>
                         <tr><td colspan="9" style="text-align:center;color:#6c757d;padding:20px">No hay propiedades registradas.</td></tr>
                     <?php else: ?>
-                        <?php while($p = mysqli_fetch_assoc($props)): ?>
+                        <?php while($p = $props->fetch(PDO::FETCH_ASSOC)): ?>
                         <tr>
                             <td><?= $p['id'] ?></td>
                             <td><?= htmlspecialchars($p['titulo']) ?></td>
@@ -143,12 +145,10 @@ $props = mysqli_query($conexion,
                     <select name="agente_id" id="propAgente">
                         <option value="">Sin asignar</option>
                         <?php
-                        //reiniciar puntero del resultado
-                        mysqli_data_seek($agentes, 0);
-                        while($a = mysqli_fetch_assoc($agentes)):
+                        foreach($agentes as $a):
                         ?>
                         <option value="<?= $a['id'] ?>"><?= htmlspecialchars($a['nombre']) ?></option>
-                        <?php endwhile; ?>
+                        <?php endforeach; ?>
                     </select>
                 </div>
                 <div class="form-group full">

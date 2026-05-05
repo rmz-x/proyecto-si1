@@ -1,28 +1,30 @@
 <?php
+// Verifica que el usuario esté logueado
 require_once 'include/auth_check.php';
+// Incluye conexión a BD
 include 'php/conexion_be.php';
- 
-// solo usuarios con rol agente, asistente u otro que no sea administrador
+
+// Si es administrador, redirige al dashboard admin
 if ($_SESSION['rol'] === 'administrador') {
     header("location: dashboard.php");
     exit();
 }
- 
-// estadisticas visibles al usuario
-$total_disp = mysqli_fetch_assoc(mysqli_query($conexion,
-    "SELECT COUNT(*) AS n FROM propiedades WHERE estado='Disponible'"))['n'];
-$total_venta = mysqli_fetch_assoc(mysqli_query($conexion,
-    "SELECT COUNT(*) AS n FROM propiedades WHERE estado='Disponible' AND tipo='Venta'"))['n'];
-$total_alquiler = mysqli_fetch_assoc(mysqli_query($conexion,
-    "SELECT COUNT(*) AS n FROM propiedades WHERE estado='Disponible' AND tipo='Alquiler'"))['n'];
- 
-// propiedades disponibles
-$props = mysqli_query($conexion,
+
+// Estadísticas visibles al usuario
+$total_disp = $conexion->query(
+    "SELECT COUNT(*) AS n FROM propiedades WHERE estado='Disponible'")->fetch(PDO::FETCH_ASSOC)['n'];
+$total_venta = $conexion->query(
+    "SELECT COUNT(*) AS n FROM propiedades WHERE estado='Disponible' AND tipo='Venta'")->fetch(PDO::FETCH_ASSOC)['n'];
+$total_alquiler = $conexion->query(
+    "SELECT COUNT(*) AS n FROM propiedades WHERE estado='Disponible' AND tipo='Alquiler'")->fetch(PDO::FETCH_ASSOC)['n'];
+
+// Propiedades disponibles
+$props = $conexion->query(
     "SELECT * FROM propiedades WHERE estado='Disponible' ORDER BY fecha_registro DESC");
- 
-// nombre del usuario
-$infoUser = mysqli_fetch_assoc(mysqli_query($conexion,
-    "SELECT nombre FROM usuarios WHERE correo='" . $_SESSION['usuario'] . "'"));
+
+// Nombre del usuario
+$infoUser = $conexion->query(
+    "SELECT nombre FROM usuarios WHERE correo='" . $_SESSION['usuario'] . "'")->fetch(PDO::FETCH_ASSOC);
 $nombreUsuario = $infoUser['nombre'] ?? $_SESSION['usuario'];
 ?>
 <!DOCTYPE html>
@@ -103,12 +105,12 @@ $nombreUsuario = $infoUser['nombre'] ?? $_SESSION['usuario'];
                 </div>
  
                 <div class="prop-grid">
-                <?php if(mysqli_num_rows($props) == 0): ?>
+                <?php if($props->rowCount() == 0): ?>
                     <p style="color:var(--color-text-secondary);padding:20px 0;grid-column:1/-1">
                         No hay propiedades disponibles en este momento.
                     </p>
                 <?php else: ?>
-                    <?php while($p = mysqli_fetch_assoc($props)): ?>
+                    <?php while($p = $props->fetch(PDO::FETCH_ASSOC)): ?>
                     <div class="prop-card">
                         <div class="prop-img prop-img-<?= strtolower($p['tipo']) ?>">
                             <span class="prop-img-placeholder">Sin foto</span>

@@ -1,44 +1,42 @@
 <?php
+// Incluye la conexión a la base de datos
 include 'conexion_be.php';
 
-$nombre    = trim($_POST['nombre']);
-$correo    = trim($_POST['correo']);
-$usuario   = trim($_POST['usuario']);
-$contrasena = $_POST['contrasena'];
-$rol       = 'cliente'; 
+// Obtiene y limpia los datos del formulario POST
+$nombre    = trim($_POST['nombre']);     // Nombre completo del usuario
+$correo    = trim($_POST['correo']);     // Correo electrónico
+$usuario   = trim($_POST['usuario']);    // Nombre de usuario
+$contrasena = $_POST['contrasena'];      // Contraseña
+$rol       = 'cliente';                  // Rol por defecto para nuevos usuarios
 
-// verificar correo duplicado
+// Verifica si el correo ya existe en la base de datos
 $ck1 = $conexion->prepare("SELECT id FROM usuarios WHERE correo = ?");
-$ck1->bind_param("s", $correo);
-$ck1->execute();
-$ck1->store_result();
-if ($ck1->num_rows > 0) {
+$ck1->execute([$correo]);
+if ($ck1->rowCount() > 0) {
+    // Si existe, muestra alerta y redirige al login
     echo '<script>alert("Este correo ya existe.");window.location="../index.php";</script>';
     exit();
 }
-$ck1->close();
 
-// verificar usuario duplicado
+// Verifica si el nombre de usuario ya existe
 $ck2 = $conexion->prepare("SELECT id FROM usuarios WHERE usuario = ?");
-$ck2->bind_param("s", $usuario);
-$ck2->execute();
-$ck2->store_result();
-if ($ck2->num_rows > 0) {
+$ck2->execute([$usuario]);
+if ($ck2->rowCount() > 0) {
+    // Si existe, muestra alerta y redirige al login
     echo '<script>alert("Este nombre de usuario ya existe.");window.location="../index.php";</script>';
     exit();
 }
-$ck2->close();
 
-// insertar con rol por defecto 'cliente'
+// Prepara la consulta para insertar el nuevo usuario
 $stmt = $conexion->prepare(
     "INSERT INTO usuarios (nombre, correo, usuario, contrasena, rol) VALUES (?, ?, ?, ?, ?)"
 );
-$stmt->bind_param("sssss", $nombre, $correo, $usuario, $contrasena, $rol);
 
-if ($stmt->execute()) {
+// Ejecuta la inserción y verifica si fue exitosa
+if ($stmt->execute([$nombre, $correo, $usuario, $contrasena, $rol])) {
+    // Si se registró correctamente, muestra mensaje de éxito
     echo '<script>alert("Usuario registrado exitosamente.");window.location="../index.php";</script>';
 } else {
+    // Si hubo error, muestra mensaje de error
     echo '<script>alert("Error al registrar el usuario.");window.location="../index.php";</script>';
 }
-$stmt->close();
-mysqli_close($conexion);

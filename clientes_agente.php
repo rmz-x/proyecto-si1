@@ -1,12 +1,14 @@
 <?php
+// Verifica que sea agente o admin
 require_once 'include/auth_agente.php';
+// Incluye conexión a BD
 include 'php/conexion_be.php';
 
 $agente_id     = $_SESSION['user_id'];
 $nombreUsuario = $_SESSION['nombre'] ?? $_SESSION['usuario'];
 
-// clientes que solicitaron visita a propiedades de este agente
-$clientes = mysqli_query($conexion,
+// Clientes que solicitaron visita a propiedades de este agente
+$clientes = $conexion->query(
     "SELECT DISTINCT u.id, u.nombre, u.correo, u.usuario,
             COUNT(sv.id) AS total_visitas,
             MAX(sv.fecha_solicitada) AS ultima_visita
@@ -42,7 +44,7 @@ $clientes = mysqli_query($conexion,
                 <div class="card-header">
                     <span class="card-title">
                         Clientes que solicitaron visitas
-                        <span style="font-size:12px;color:#6c757d;font-weight:400;margin-left:6px">(<?= mysqli_num_rows($clientes) ?> clientes)</span>
+                        <span style="font-size:12px;color:#6c757d;font-weight:400;margin-left:6px">(<?= $clientes->rowCount() ?> clientes)</span>
                     </span>
                 </div>
                 <table>
@@ -50,10 +52,10 @@ $clientes = mysqli_query($conexion,
                         <tr><th>#</th><th>Nombre</th><th>Correo</th><th>Usuario</th><th>Total visitas</th><th>Última solicitud</th><th>Acción</th></tr>
                     </thead>
                     <tbody>
-                    <?php if(mysqli_num_rows($clientes)==0): ?>
+                    <?php if($clientes->rowCount()==0): ?>
                         <tr><td colspan="7" style="text-align:center;color:#6c757d;padding:20px">Aún no tienes clientes con solicitudes.</td></tr>
                     <?php else: ?>
-                        <?php while($c=mysqli_fetch_assoc($clientes)): ?>
+                        <?php while($c=$clientes->fetch(PDO::FETCH_ASSOC)): ?>
                         <tr>
                             <td><?= $c['id'] ?></td>
                             <td><?= htmlspecialchars($c['nombre']) ?></td>

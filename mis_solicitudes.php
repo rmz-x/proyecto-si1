@@ -1,11 +1,15 @@
 <?php
+// Verifica que el usuario esté logueado
 require_once 'include/auth_check.php';
+// Incluye conexión a BD
 include 'php/conexion_be.php';
 
+// Obtiene ID del cliente y nombre
 $cliente_id    = $_SESSION['user_id'];
 $nombreUsuario = $_SESSION['nombre'] ?? $_SESSION['usuario'];
 
-$solicitudes = mysqli_query($conexion,
+// Consulta solicitudes de visita del cliente
+$solicitudes = $conexion->query(
     "SELECT sv.*, p.titulo AS propiedad, p.zona, p.tipo
      FROM solicitudes_visita sv
      JOIN propiedades p ON sv.propiedad_id = p.id
@@ -62,7 +66,7 @@ $solicitudes = mysqli_query($conexion,
                         </tr>
                     </thead>
                     <tbody>
-                    <?php if(mysqli_num_rows($solicitudes)==0): ?>
+                    <?php if($solicitudes->rowCount()==0): ?>
                         <tr>
                             <td colspan="6" style="text-align:center;color:#6c757d;padding:30px">
                                 No tienes solicitudes aún.
@@ -70,7 +74,7 @@ $solicitudes = mysqli_query($conexion,
                             </td>
                         </tr>
                     <?php else: ?>
-                        <?php while($s=mysqli_fetch_assoc($solicitudes)): ?>
+                        <?php while($s=$solicitudes->fetch(PDO::FETCH_ASSOC)): ?>
                         <tr>
                             <td><?= htmlspecialchars($s['propiedad']) ?></td>
                             <td><?= htmlspecialchars($s['zona']) ?></td>

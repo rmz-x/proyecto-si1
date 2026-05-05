@@ -1,11 +1,14 @@
 <?php
+// Verifica que sea agente o admin
 require_once 'include/auth_agente.php';
+// Incluye conexión a BD
 include 'php/conexion_be.php';
 
 $agente_id     = $_SESSION['user_id'];
 $nombreUsuario = $_SESSION['nombre'] ?? $_SESSION['usuario'];
 
-$props = mysqli_query($conexion,
+// Propiedades asignadas al agente
+$props = $conexion->query(
     "SELECT * FROM propiedades WHERE agente_id = $agente_id ORDER BY fecha_registro DESC");
 ?>
 <!DOCTYPE html>
@@ -39,10 +42,10 @@ $props = mysqli_query($conexion,
                         <tr><th>#</th><th>Título</th><th>Tipo</th><th>Zona</th><th>Precio</th><th>Área</th><th>Estado</th><th>Acciones</th></tr>
                     </thead>
                     <tbody>
-                    <?php if(mysqli_num_rows($props)==0): ?>
+                    <?php if($props->rowCount()==0): ?>
                         <tr><td colspan="8" style="text-align:center;color:#6c757d;padding:20px">No tienes propiedades registradas.</td></tr>
                     <?php else: ?>
-                        <?php while($p=mysqli_fetch_assoc($props)): ?>
+                        <?php while($p=$props->fetch(PDO::FETCH_ASSOC)): ?>
                         <tr>
                             <td><?= $p['id'] ?></td>
                             <td><?= htmlspecialchars($p['titulo']) ?></td>

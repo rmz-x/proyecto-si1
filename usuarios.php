@@ -1,8 +1,11 @@
 <?php
+// Verifica que sea admin
 require_once 'include/auth_admin.php';
+// Incluye conexión a BD
 include 'php/conexion_be.php';
 
-$usuarios = mysqli_query($conexion, "SELECT * FROM usuarios ORDER BY nombre");
+// Obtener todos los usuarios
+$usuarios = $conexion->query("SELECT * FROM usuarios ORDER BY nombre");
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -46,10 +49,10 @@ $usuarios = mysqli_query($conexion, "SELECT * FROM usuarios ORDER BY nombre");
                         </tr>
                     </thead>
                     <tbody>
-                    <?php if(mysqli_num_rows($usuarios) == 0): ?>
+                    <?php if($usuarios->rowCount() == 0): ?>
                         <tr><td colspan="6" style="text-align:center;color:#6c757d;padding:20px">No hay usuarios registrados.</td></tr>
                     <?php else: ?>
-                        <?php while($u = mysqli_fetch_assoc($usuarios)): ?>
+                        <?php while($u = $usuarios->fetch(PDO::FETCH_ASSOC)): ?>
                         <tr>
                             <td><?= $u['id'] ?></td>
                             <td><?= htmlspecialchars($u['nombre']) ?></td>

@@ -1,8 +1,10 @@
 <?php
+// Verifica que el usuario esté logueado
 require_once 'include/auth_check.php';
+// Incluye conexión a BD
 include 'php/conexion_be.php';
 
-// validar filtro de casa
+// Validar filtro de tipo de propiedad
 $tipos_validos = ['Venta', 'Alquiler', 'Anticretico'];
 $filtro = (isset($_GET['tipo']) && in_array($_GET['tipo'], $tipos_validos)) ? $_GET['tipo'] : 'Todas';
 
@@ -10,18 +12,17 @@ if ($filtro !== 'Todas') {
     $stmt = $conexion->prepare(
         "SELECT * FROM propiedades WHERE estado='Disponible' AND tipo=? ORDER BY fecha_registro DESC"
     );
-    $stmt->bind_param("s", $filtro);
-    $stmt->execute();
-    $props = $stmt->get_result();
+    $stmt->execute([$filtro]);
+    $props = $stmt;
 } else {
-    $props = mysqli_query($conexion,
+    $props = $conexion->query(
         "SELECT * FROM propiedades WHERE estado='Disponible' ORDER BY fecha_registro DESC");
 }
 
 $nombreUsuario = $_SESSION['nombre'] ?? $_SESSION['usuario'];
 $current = basename($_SERVER['PHP_SELF']);
 
-// mensaje de exito al solicitar visita
+// Mensaje de éxito al solicitar visita
 $msg = $_GET['msg'] ?? '';
 ?>
 <!DOCTYPE html>
@@ -72,14 +73,14 @@ $msg = $_GET['msg'] ?? '';
                 <div class="card-header">
                     <span class="card-title">
                         <?= $filtro==='Todas' ? 'Todas las propiedades' : "Propiedades: $filtro" ?>
-                        <span style="font-size:12px;color:#6c757d;font-weight:400;margin-left:8px">(<?= mysqli_num_rows($props) ?> encontradas)</span>
+                        <span style="font-size:12px;color:#6c757d;font-weight:400;margin-left:8px">(<?= $props->rowCount() ?> encontradas)</span>
                     </span>
                 </div>
                 <div class="prop-grid">
-                <?php if(mysqli_num_rows($props)==0): ?>
+                <?php if($props->rowCount()==0): ?>
                     <p style="color:#6c757d;padding:20px 0;grid-column:1/-1;text-align:center">No hay propiedades disponibles.</p>
                 <?php else: ?>
-                    <?php while($p=mysqli_fetch_assoc($props)): ?>
+                    <?php while($p=$props->fetch(PDO::FETCH_ASSOC)): ?>
                     <div class="prop-card">
                         <div class="prop-img prop-img-<?= strtolower($p['tipo']) ?>">
                             <span class="prop-img-placeholder">Sin foto</span>

@@ -1,20 +1,23 @@
 <?php
+// Verifica que el usuario esté logueado
 require_once 'include/auth_check.php';
+// Incluye conexión a BD
 include 'php/conexion_be.php';
 
+// Obtiene el ID de la propiedad desde GET
 $id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
 
+// Consulta la propiedad con el agente asignado
 $stmt = $conexion->prepare(
     "SELECT p.*, u.nombre AS agente_nombre
      FROM propiedades p
      LEFT JOIN usuarios u ON p.agente_id = u.id
      WHERE p.id = ?"
 );
-$stmt->bind_param("i", $id);
-$stmt->execute();
-$prop = $stmt->get_result()->fetch_assoc();
-$stmt->close();
+$stmt->execute([$id]);
+$prop = $stmt->fetch(PDO::FETCH_ASSOC);
 
+// Si no existe la propiedad, redirige
 if (!$prop) {
     echo '<script>alert("Propiedad no encontrada.");window.location="ver_propiedades.php";</script>';
     exit();

@@ -1,3 +1,4 @@
+/* Reset general de estilos para todos los elementos */
 *{
     margin: 0;
     padding: 0;
@@ -6,6 +7,7 @@
     font-family: "Roboto", sans-serif;
 }
 
+/* Estilos para el body: fondo con imagen */
 body{
 
     background-image: url(../imagenes/er_1.jpg);
@@ -15,6 +17,7 @@ body{
     background-attachment: fixed;
 }
 
+/* Estilos para el main: contenedor principal */
 main{
     width: 100%;
     padding: 20px;
@@ -22,6 +25,7 @@ main{
     margin-top: 100px;
 }
 
+/* Contenedor principal de todo el contenido */
 .contenedor_todo{
     width: 100%;
     max-width: 800px;
@@ -29,6 +33,7 @@ main{
     position: relative;
 }
 
+/* Caja trasera con efecto blur para login/registro */
 .caja_trasera{
     width: 100%;
     padding: 10px 20px;
@@ -38,12 +43,14 @@ main{
     background-color: rgba(0, 128, 255, 0.5);
 }
 
+/* Estilos para los divs dentro de caja_trasera */
 .caja_trasera div{
     margin: 100px 40px;
     color: white;
     transition: all 500ms;
 }
 
+/* Margen superior para párrafos y botones en caja_trasera */
 .caja_trasera div p,
 .caja_trasera div button{
     margin-top: 30px;

@@ -1,9 +1,14 @@
 <?php
+// Inicia sesión
 session_start();
+// Verifica si el usuario está logueado
 if (!isset($_SESSION['usuario'])) { header("location: ../index.php"); exit(); }
+// Incluye conexión a BD
 include 'conexion_be.php';
+// Incluye función para registrar actividad
 require_once '../include/actividad.php';
 
+// Obtiene datos del formulario
 $accion      = $_POST['accion']      ?? 'registrar';
 $titulo      = trim($_POST['titulo']      ?? '');
 $tipo        = $_POST['tipo']        ?? 'Venta';
@@ -19,32 +24,26 @@ if ($accion === 'registrar') {
         "INSERT INTO propiedades (titulo, tipo, zona, precio, area, descripcion, estado, agente_id)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
     );
-    $stmt->bind_param("sssdsssi", $titulo, $tipo, $zona, $precio, $area, $descripcion, $estado, $agente_id);
 
-    if ($stmt->execute()) {
+    if ($stmt->execute([$titulo, $tipo, $zona, $precio, $area, $descripcion, $estado, $agente_id])) {
         registrarActividad($conexion, 'Propiedad registrada',
             "Se registró la propiedad: \"$titulo\" ($tipo) en $zona por \$$precio.");
         echo '<script>alert("Propiedad registrada exitosamente.");window.location="../propiedades.php";</script>';
     } else {
         echo '<script>alert("Error al registrar la propiedad.");window.location="../propiedades.php";</script>';
     }
-    $stmt->close();
 
 } elseif ($accion === 'modificar') {
     $id = (int)$_POST['id'];
     $stmt = $conexion->prepare(
         "UPDATE propiedades SET titulo=?, tipo=?, zona=?, precio=?, area=?, descripcion=?, estado=?, agente_id=? WHERE id=?"
     );
-    $stmt->bind_param("sssdsssii", $titulo, $tipo, $zona, $precio, $area, $descripcion, $estado, $agente_id, $id);
 
-    if ($stmt->execute()) {
+    if ($stmt->execute([$titulo, $tipo, $zona, $precio, $area, $descripcion, $estado, $agente_id, $id])) {
         registrarActividad($conexion, 'Propiedad modificada',
             "Se modificó la propiedad ID $id: \"$titulo\" — nuevo estado: $estado.");
         echo '<script>alert("Propiedad actualizada correctamente.");window.location="../propiedades.php";</script>';
     } else {
         echo '<script>alert("Error al actualizar la propiedad.");window.location="../propiedades.php";</script>';
     }
-    $stmt->close();
 }
-
-mysqli_close($conexion);

@@ -1,14 +1,14 @@
- /**
+/**
  * muestra un mensaje de error debajo del campo
- * @param {HTMLElement} campo  
- * @param {string}      mensaje 
+ * @param {HTMLElement} campo
+ * @param {string}      mensaje
  */
 function mostrarError(campo, mensaje) {
     limpiarError(campo); // evitar mensajes duplicados
- 
+
     campo.style.border = "1.5px solid #e53935";
     campo.style.background = "#fff8f8";
- 
+
     const span = document.createElement("span");
     span.className   = "error-msg";
     span.textContent = mensaje;
@@ -21,16 +21,16 @@ function mostrarError(campo, mensaje) {
     `;
     campo.parentNode.appendChild(span);
 }
- 
-/*limpia el error visual de un campo*/
+
+/* limpia el error visual de un campo */
 function limpiarError(campo) {
     campo.style.border    = "";
     campo.style.background = "";
     const viejo = campo.parentNode.querySelector(".error-msg");
     if (viejo) viejo.remove();
 }
- 
-/*limpia todos los errores de un formulario*/
+
+/* limpia todos los errores de un formulario */
 function limpiarTodosLosErrores(form) {
     form.querySelectorAll(".error-msg").forEach(e => e.remove());
     form.querySelectorAll("input, select, textarea").forEach(c => {
@@ -38,12 +38,13 @@ function limpiarTodosLosErrores(form) {
         c.style.background = "";
     });
 }
- 
-/*verifica si un correo tiene formato válido*/
+
+/* verifica si un correo tiene formato válido */
 function esCorreoValido(correo) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo);
 }
- 
+
+// Función para validar el formulario de login
 function validarLogin(e) {
     const form    = document.querySelector(".formulario_login");
     const correo  = form.querySelector('input[name="correo"]');

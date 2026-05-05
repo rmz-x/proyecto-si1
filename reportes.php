@@ -1,21 +1,25 @@
 <?php
+// Inicia sesión si no está activa
 if (session_status() === PHP_SESSION_NONE) session_start();
+// Verifica si el usuario está logueado
 if (!isset($_SESSION['usuario'])) {
     echo '<script>alert("Debes iniciar sesión.");window.location="index.php";</script>'; exit();
 }
+// Verifica permisos: solo admin o asistente
 if (!in_array($_SESSION['rol'], ['administrador','asistente'])) {
     echo '<script>alert("Sin permiso.");window.location="index.php";</script>'; exit();
 }
 
+// Incluye conexión a BD
 include 'php/conexion_be.php';
 $nombreUsuario = $_SESSION['nombre'] ?? $_SESSION['usuario'];
 
-//filtros
+// Filtros para la consulta
 $filtro_accion = $_GET['accion'] ?? 'todas';
 $filtro_fecha  = $_GET['fecha']  ?? '';
 $filtro_rol    = $_GET['rol']    ?? 'todos';
 
-//construir WHERE dinamico de forma segura
+// Construir WHERE dinámico de forma segura
 $condiciones = [];
 $params      = [];
 $tipos       = '';
@@ -41,22 +45,20 @@ $sql   = "SELECT * FROM registro_actividad $where ORDER BY fecha_hora DESC LIMIT
 
 if (count($params) > 0) {
     $stmt = $conexion->prepare($sql);
-    $stmt->bind_param($tipos, ...$params);
-    $stmt->execute();
-    $actividad = $stmt->get_result();
-    $stmt->close();
+    $stmt->execute($params);
+    $actividad = $stmt;
 } else {
-    $actividad = mysqli_query($conexion, $sql);
+    $actividad = $conexion->query($sql);
 }
 
-// totales para las tarjetas
-$total_logins   = mysqli_fetch_assoc(mysqli_query($conexion, "SELECT COUNT(*) AS n FROM registro_actividad WHERE accion='Inicio de sesión'"))['n'];
-$total_fallidos = mysqli_fetch_assoc(mysqli_query($conexion, "SELECT COUNT(*) AS n FROM registro_actividad WHERE accion='Intento de sesión fallido'"))['n'];
-$total_props    = mysqli_fetch_assoc(mysqli_query($conexion, "SELECT COUNT(*) AS n FROM registro_actividad WHERE accion='Propiedad registrada'"))['n'];
-$total_hoy      = mysqli_fetch_assoc(mysqli_query($conexion, "SELECT COUNT(*) AS n FROM registro_actividad WHERE DATE(fecha_hora)=CURDATE()"))['n'];
+// Totales para las tarjetas
+$total_logins   = $conexion->query("SELECT COUNT(*) AS n FROM registro_actividad WHERE accion='Inicio de sesión'")->fetch(PDO::FETCH_ASSOC)['n'];
+$total_fallidos = $conexion->query("SELECT COUNT(*) AS n FROM registro_actividad WHERE accion='Intento de sesión fallido'")->fetch(PDO::FETCH_ASSOC)['n'];
+$total_props    = $conexion->query("SELECT COUNT(*) AS n FROM registro_actividad WHERE accion='Propiedad registrada'")->fetch(PDO::FETCH_ASSOC)['n'];
+$total_hoy      = $conexion->query("SELECT COUNT(*) AS n FROM registro_actividad WHERE DATE(fecha_hora)=CURDATE()")->fetch(PDO::FETCH_ASSOC)['n'];
 
 // acciones unicas para el filtro
-$acciones_raw = mysqli_query($conexion, "SELECT DISTINCT accion FROM registro_actividad ORDER BY accion");
+$acciones_raw = $conexion->query("SELECT DISTINCT accion FROM registro_actividad ORDER BY accion");
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -148,14 +150,13 @@ $acciones_raw = mysqli_query($conexion, "SELECT DISTINCT accion FROM registro_ac
                             <select name="accion">
                                 <option value="todas">Todas las acciones</option>
                                 <?php
-                                mysqli_data_seek($acciones_raw, 0);
-                                while ($a = mysqli_fetch_assoc($acciones_raw)):
+                                foreach($acciones_raw->fetchAll(PDO::FETCH_ASSOC) as $a):
                                     $sel = $filtro_accion === $a['accion'] ? 'selected' : '';
                                 ?>
                                 <option value="<?= htmlspecialchars($a['accion']) ?>" <?= $sel ?>>
                                     <?= htmlspecialchars($a['accion']) ?>
                                 </option>
-                                <?php endwhile; ?>
+                                <?php endforeach; ?>
                             </select>
                         </div>
                         <div class="filter-group">
@@ -189,7 +190,7 @@ $acciones_raw = mysqli_query($conexion, "SELECT DISTINCT accion FROM registro_ac
                     <span class="card-title">
                         Registro de actividad
                         <span style="font-size:12px;color:#6c757d;font-weight:400;margin-left:6px">
-                            (mostrando últimos <?= mysqli_num_rows($actividad) ?> registros)
+                            (mostrando últimos <?= $actividad->rowCount() ?> registros)
                         </span>
                     </span>
                 </div>
@@ -206,14 +207,14 @@ $acciones_raw = mysqli_query($conexion, "SELECT DISTINCT accion FROM registro_ac
                         </tr>
                     </thead>
                     <tbody>
-                    <?php if(mysqli_num_rows($actividad)==0): ?>
+                    <?php if($actividad->rowCount()==0): ?>
                         <tr>
                             <td colspan="7" style="text-align:center;color:#6c757d;padding:30px">
                                 No hay registros con esos filtros.
                             </td>
                         </tr>
                     <?php else: ?>
-                        <?php while($r=mysqli_fetch_assoc($actividad)): ?>
+                        <?php while($r=$actividad->fetch(PDO::FETCH_ASSOC)): ?>
                         <?php
                         //clase del badge según acción
                         $accionLower = strtolower($r['accion']);

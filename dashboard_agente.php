@@ -1,34 +1,28 @@
 <?php
+// Verifica que el usuario sea agente o admin antes de mostrar la página
 require_once 'include/auth_agente.php';
+// Incluye la conexión a la base de datos
 include 'php/conexion_be.php';
 
+// Obtiene el nombre del usuario de la sesión
 $nombreUsuario = $_SESSION['nombre'] ?? $_SESSION['usuario'];
+// Obtiene el ID del agente de la sesión
 $agente_id     = $_SESSION['user_id'];
 
-// estadísticas del agente
-$mis_props = mysqli_fetch_assoc(mysqli_query($conexion,
-    "SELECT COUNT(*) AS n FROM propiedades WHERE agente_id = $agente_id"))['n'];
-$disponibles = mysqli_fetch_assoc(mysqli_query($conexion,
-    "SELECT COUNT(*) AS n FROM propiedades WHERE agente_id = $agente_id AND estado='Disponible'"))['n'];
-$vendidas = mysqli_fetch_assoc(mysqli_query($conexion,
-    "SELECT COUNT(*) AS n FROM propiedades WHERE agente_id = $agente_id AND estado='Vendido'"))['n'];
-$visitas_pend = mysqli_fetch_assoc(mysqli_query($conexion,
-    "SELECT COUNT(*) AS n FROM solicitudes_visita sv
-     JOIN propiedades p ON sv.propiedad_id = p.id
-     WHERE p.agente_id = $agente_id AND sv.estado='pendiente'"))['n'];
+// Estadísticas del agente: cuenta propiedades asignadas
+$mis_props = $conexion->query("SELECT COUNT(*) AS n FROM propiedades WHERE agente_id = $agente_id")->fetch(PDO::FETCH_ASSOC)['n'];
+// Cuenta propiedades disponibles
+$disponibles = $conexion->query("SELECT COUNT(*) AS n FROM propiedades WHERE agente_id = $agente_id AND estado='Disponible'")->fetch(PDO::FETCH_ASSOC)['n'];
+// Cuenta propiedades vendidas
+$vendidas = $conexion->query("SELECT COUNT(*) AS n FROM propiedades WHERE agente_id = $agente_id AND estado='Vendido'")->fetch(PDO::FETCH_ASSOC)['n'];
+// Cuenta visitas pendientes
+$visitas_pend = $conexion->query("SELECT COUNT(*) AS n FROM solicitudes_visita sv JOIN propiedades p ON sv.propiedad_id = p.id WHERE p.agente_id = $agente_id AND sv.estado='pendiente'")->fetch(PDO::FETCH_ASSOC)['n'];
 
-// ultimas propiedades del agente
-$props = mysqli_query($conexion,
-    "SELECT * FROM propiedades WHERE agente_id = $agente_id ORDER BY fecha_registro DESC LIMIT 5");
+// Consulta las últimas 5 propiedades del agente
+$props = $conexion->query("SELECT * FROM propiedades WHERE agente_id = $agente_id ORDER BY fecha_registro DESC LIMIT 5");
 
-// solicitudes de visita pendientes
-$visitas = mysqli_query($conexion,
-    "SELECT sv.*, p.titulo AS propiedad, u.nombre AS cliente
-     FROM solicitudes_visita sv
-     JOIN propiedades p ON sv.propiedad_id = p.id
-     JOIN usuarios u    ON sv.cliente_id   = u.id
-     WHERE p.agente_id = $agente_id AND sv.estado = 'pendiente'
-     ORDER BY sv.fecha_solicitada ASC LIMIT 5");
+// Consulta solicitudes de visita pendientes con detalles
+$visitas = $conexion->query("SELECT sv.*, p.titulo AS propiedad, u.nombre AS cliente FROM solicitudes_visita sv JOIN propiedades p ON sv.propiedad_id = p.id JOIN usuarios u ON sv.cliente_id = u.id WHERE p.agente_id = $agente_id AND sv.estado = 'pendiente' ORDER BY sv.fecha_solicitada ASC LIMIT 5");
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -36,24 +30,29 @@ $visitas = mysqli_query($conexion,
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel Agente — Lorent Inmobiliaria</title>
+    <!-- Fuentes de Google -->
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Estilos CSS del dashboard -->
     <link rel="stylesheet" href="asscet/css/dashboard.css">
 </head>
 <body>
 <div class="layout">
+    <!-- Incluye el menú lateral personalizado por rol -->
     <?php include 'include/sidebar_usuario.php'; ?>
     <div class="main">
         <div class="topbar">
             <span class="topbar-title">Panel del Agente</span>
             <div class="user-info">
+                <!-- Avatar con iniciales -->
                 <div class="user-avatar"><?= strtoupper(substr($nombreUsuario,0,2)) ?></div>
                 <span class="user-email"><?= htmlspecialchars($nombreUsuario) ?></span>
+                <!-- Badge indicando rol de agente -->
                 <span class="badge" style="background:#E6F1FB;color:#185FA5;font-size:11px;padding:2px 8px;border-radius:10px">Agente</span>
             </div>
         </div>
         <div class="content">
 
-            <!-- Stats -->
+            <!-- Sección de estadísticas -->
             <div class="stats">
                 <div class="stat-card">
                     <p class="stat-label">Mis propiedades</p>
@@ -84,10 +83,10 @@ $visitas = mysqli_query($conexion,
                         <tr><th>Título</th><th>Zona</th><th>Tipo</th><th>Precio</th><th>Estado</th></tr>
                     </thead>
                     <tbody>
-                    <?php if(mysqli_num_rows($props)==0): ?>
+                    <?php if($props->rowCount()==0): ?>
                         <tr><td colspan="5" style="text-align:center;color:#6c757d;padding:20px">No tienes propiedades asignadas aún.</td></tr>
                     <?php else: ?>
-                        <?php while($p=mysqli_fetch_assoc($props)): ?>
+                        <?php while($p=$props->fetch(PDO::FETCH_ASSOC)): ?>
                         <tr>
                             <td><?= htmlspecialchars($p['titulo']) ?></td>
                             <td><?= htmlspecialchars($p['zona']) ?></td>
@@ -112,10 +111,10 @@ $visitas = mysqli_query($conexion,
                         <tr><th>Propiedad</th><th>Cliente</th><th>Fecha solicitada</th><th>Mensaje</th><th>Acción</th></tr>
                     </thead>
                     <tbody>
-                    <?php if(mysqli_num_rows($visitas)==0): ?>
+                    <?php if($visitas->rowCount()==0): ?>
                         <tr><td colspan="5" style="text-align:center;color:#6c757d;padding:20px">No hay visitas pendientes.</td></tr>
                     <?php else: ?>
-                        <?php while($v=mysqli_fetch_assoc($visitas)): ?>
+                        <?php while($v=$visitas->fetch(PDO::FETCH_ASSOC)): ?>
                         <tr>
                             <td><?= htmlspecialchars($v['propiedad']) ?></td>
                             <td><?= htmlspecialchars($v['cliente']) ?></td>
