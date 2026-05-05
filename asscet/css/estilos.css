@@ -1,0 +1,288 @@
+/* Reset general de estilos para todos los elementos */
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    text-decoration: none;
+    font-family: "Roboto", sans-serif;
+}
+
+/* Estilos para el body: fondo con imagen */
+body{
+
+    background-image: url(../imagenes/er_1.jpg);
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+    background-attachment: fixed;
+}
+
+/* Estilos para el main: contenedor principal */
+main{
+    width: 100%;
+    padding: 20px;
+    margin: auto;
+    margin-top: 100px;
+}
+
+/* Contenedor principal de todo el contenido */
+.contenedor_todo{
+    width: 100%;
+    max-width: 800px;
+    margin: auto;
+    position: relative;
+}
+
+/* Caja trasera con efecto blur para login/registro */
+.caja_trasera{
+    width: 100%;
+    padding: 10px 20px;
+    display: flex;
+    justify-content: center;
+    backdrop-filter: blur(10px);
+    background-color: rgba(0, 128, 255, 0.5);
+}
+
+/* Estilos para los divs dentro de caja_trasera */
+.caja_trasera div{
+    margin: 100px 40px;
+    color: white;
+    transition: all 500ms;
+}
+
+/* Margen superior para párrafos y botones en caja_trasera */
+.caja_trasera div p,
+.caja_trasera div button{
+    margin-top: 30px;
+}
+
+.caja_trasera div h3{
+    font-weight: 400;
+    font-size: 26px;
+}
+
+.caja_trasera button{
+    padding: 10px 40px;
+    border: 2px solid #fff;
+    background: transparent;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    color: white;
+    outline: none;
+    transition: all 300ms;
+}
+
+.caja_trasera button:hover{
+    background: #fff;
+    color: #46A2FD;
+}
+
+/*FORMULARIOS*/
+.contenedor_login-register{ 
+    display: flex; 
+    align-items: center; 
+    width: 100%; 
+    max-width: 380px; 
+    position: relative; 
+    top: -185px; 
+    left: 10px; 
+}
+
+.contenedor_login-register form{
+    width: 100%;
+    padding: 40px 20px;
+    background: #fff;
+    position: absolute;
+    /* position: relative; /* en lugar de absolute */
+    border-radius: 20px;
+    /*z-index: 2;         /* asegura que esté encima */
+}
+
+/*new agggg*/
+.error-message {
+    color: red;
+    margin-top: 12px;
+    font-size: 14px;
+    display: block;
+}
+
+.contenedor_login-register form h2{
+    font-size: 30px;
+    text-align: center;
+    margin-bottom: 20px;
+    color: #46A2FD;
+}
+
+.contenedor_login-register form input{
+    width: 100%;
+    margin-top: 20px;
+    padding: 10px;
+    border: none;
+    background: #F2F2F2;
+    font-size: 16px;
+    outline: none;
+
+    /* alineacion */
+    height: 42px;
+    line-height: 42px;
+}
+
+.contenedor_login-register form button{
+    padding: 10px 40px;
+    margin-top: 40px;
+    border: none;
+    font-size: 14px;
+    background: #46A2FD;
+    color: white;
+    cursor: pointer;
+    outline: none;
+}
+
+.formulario_login{
+    opacity: 1;
+    display: block;
+}
+
+.formulario_register{
+    display: none;
+}
+
+/*Trabajando en el responsive dising*/
+@media screen and (max-width: 850px) {
+    main{
+        margin-top: 50px;
+    }
+
+    .caja_trasera{
+        max-width: 350px;
+        height: 300px;
+        flex-direction: column;
+        margin: auto;
+    }
+
+    .caja_trasera div{
+        margin: 0px;
+        position: absolute;
+    }
+
+    /*formulario*/
+    .contenedor_login-register{
+        top: -10px;
+        left: -5px;
+        margin: auto;
+    }
+
+    .contenedor_login-register form{
+        position: relative;
+    }
+    
+}
+
+/* Estilos para el toggle de contraseña */
+
+.password-wrapper {
+    position: relative;
+    /*display: flex; MENSAJE ALERTA*/
+    align-items: center; 
+    width: 100%;
+    margin-top: 20px;
+}
+
+.password-wrapper input {
+    width: 100%;
+    padding: 10px;
+    padding-right: 40px;
+    border: none;
+    background: #F2F2F2;
+    font-size: 16px;
+    outline: none;
+}
+
+.password-wrapper input:focus {
+    background: #E8F1FF;
+    border: 1px solid #46A2FD;
+}
+
+
+.password-toggle-btn {
+    position: absolute;
+    right: 8px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 18px;
+    padding: 5px 8px;
+    outline: none;
+    transition: transform 200ms;
+}
+
+.password-toggle-btn:hover {
+    transform: scale(1.1);
+}
+
+.password-toggle-btn:active {
+    transform: scale(0.95);
+}
+
+
+
+/* BOTÓN MOSTRAR CONTRASEÑA */
+
+.contenedor_login-register form .password-toggle-btn {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-33%);
+
+    background: transparent;
+    border: none;
+    padding: 0;
+    margin: 0;
+
+    cursor: pointer;
+    font-size: 18px;
+    color: #666;
+}
+
+
+.contenedor_login-register form .password-toggle-btn i {
+    pointer-events: none;
+}
+
+.password-wrapper {
+    position: relative;
+    width: 100%;
+    margin-top: 20px;
+}
+
+
+.password-wrapper input {
+    width: 100%;
+    padding: 10px;
+    padding-right: 45px;
+}
+
+
+/* Linea para el boton volver al login */
+.btn-submit,
+.btn-volver {
+    display: inline-block;
+    width: 100%;          
+    padding: 10px;      
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    cursor: pointer;
+    text-align: center;
+}
+
+.btn-volver {
+    background: #dc3545;
+    color: #fff;
+}
+.btn-volver:hover {
+    background: #a71d2a;
+}
