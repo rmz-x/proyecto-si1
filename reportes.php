@@ -55,7 +55,7 @@ if (count($params) > 0) {
 $total_logins   = $conexion->query("SELECT COUNT(*) AS n FROM registro_actividad WHERE accion='Inicio de sesión'")->fetch(PDO::FETCH_ASSOC)['n'];
 $total_fallidos = $conexion->query("SELECT COUNT(*) AS n FROM registro_actividad WHERE accion='Intento de sesión fallido'")->fetch(PDO::FETCH_ASSOC)['n'];
 $total_props    = $conexion->query("SELECT COUNT(*) AS n FROM registro_actividad WHERE accion='Propiedad registrada'")->fetch(PDO::FETCH_ASSOC)['n'];
-$total_hoy      = $conexion->query("SELECT COUNT(*) AS n FROM registro_actividad WHERE DATE(fecha_hora)=CURDATE()")->fetch(PDO::FETCH_ASSOC)['n'];
+$total_hoy      = $conexion->query("SELECT COUNT(*) AS n FROM registro_actividad WHERE DATE(fecha_hora)=CURRENT_DATE")->fetch(PDO::FETCH_ASSOC)['n'];
 
 // acciones unicas para el filtro
 $acciones_raw = $conexion->query("SELECT DISTINCT accion FROM registro_actividad ORDER BY accion");

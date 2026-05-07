@@ -1,32 +1,33 @@
 <?php
-// Verifica que el usuario esté logueado
+
 require_once 'include/auth_check.php';
-// Incluye conexión a BD
 include 'php/conexion_be.php';
 
-// Si es administrador, redirige al dashboard admin
+// Redirección si es administrador
 if ($_SESSION['rol'] === 'administrador') {
-    header("location: dashboard.php");
+    header("Location: dashboard.php");
     exit();
 }
 
-// Estadísticas visibles al usuario
-$total_disp = $conexion->query(
-    "SELECT COUNT(*) AS n FROM propiedades WHERE estado='Disponible'")->fetch(PDO::FETCH_ASSOC)['n'];
-$total_venta = $conexion->query(
-    "SELECT COUNT(*) AS n FROM propiedades WHERE estado='Disponible' AND tipo='Venta'")->fetch(PDO::FETCH_ASSOC)['n'];
-$total_alquiler = $conexion->query(
-    "SELECT COUNT(*) AS n FROM propiedades WHERE estado='Disponible' AND tipo='Alquiler'")->fetch(PDO::FETCH_ASSOC)['n'];
+// Estadísticas
+$total_disp = $conexion->query("SELECT COUNT(*) AS n FROM propiedades WHERE estado='Disponible'")->fetch(PDO::FETCH_ASSOC)['n'];
+$total_venta = $conexion->query("SELECT COUNT(*) AS n FROM propiedades WHERE estado='Disponible' AND tipo='Venta'")->fetch(PDO::FETCH_ASSOC)['n'];
+$total_alquiler = $conexion->query("SELECT COUNT(*) AS n FROM propiedades WHERE estado='Disponible' AND tipo='Alquiler'")->fetch(PDO::FETCH_ASSOC)['n'];
 
-// Propiedades disponibles
-$props = $conexion->query(
-    "SELECT * FROM propiedades WHERE estado='Disponible' ORDER BY fecha_registro DESC");
+// 🔹 Búsqueda dinámica centralizada
+include 'php/buscar_propiedades_be.php';
 
 // Nombre del usuario
-$infoUser = $conexion->query(
-    "SELECT nombre FROM usuarios WHERE correo='" . $_SESSION['usuario'] . "'")->fetch(PDO::FETCH_ASSOC);
+$stmtUser = $conexion->prepare("SELECT nombre FROM usuarios WHERE correo=:correo");
+$stmtUser->execute([':correo' => $_SESSION['usuario']]);
+$infoUser = $stmtUser->fetch(PDO::FETCH_ASSOC);
 $nombreUsuario = $infoUser['nombre'] ?? $_SESSION['usuario'];
+
 ?>
+
+
+
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -82,6 +83,7 @@ $nombreUsuario = $infoUser['nombre'] ?? $_SESSION['usuario'];
                 <a href="ver_propiedades.php" class="btn-primary">Ver todas las propiedades</a>
             </div>
  
+            
             <!-- estadisticas -->
             <div class="stats">
                 <div class="stat-card">
@@ -97,42 +99,111 @@ $nombreUsuario = $infoUser['nombre'] ?? $_SESSION['usuario'];
                     <p class="stat-value"><?= $total_alquiler ?></p>
                 </div>
             </div>
- 
+
+
+
+            <!-- buscar propiedades -->
+            <form method="GET" action="dashboard_usuario.php" class="search-bar">
+                <input type="text" name="q" placeholder="Buscar por título o zona"
+                    value="<?= htmlspecialchars($_GET['q'] ?? '') ?>">
+                <select name="tipo">
+                    <option value="">Todos</option>
+                    <option value="Venta" <?= ($_GET['tipo'] ?? '')=='Venta'?'selected':'' ?>>Venta</option>
+                    <option value="Alquiler" <?= ($_GET['tipo'] ?? '')=='Alquiler'?'selected':'' ?>>Alquiler</option>
+                    <option value="Anticretico" <?= ($_GET['tipo'] ?? '')=='Anticretico'?'selected':'' ?>>Anticrético</option>
+                </select>
+                <button type="submit">Buscar</button>
+            </form>
+
+            <!-- filtros avanzados -->
+            <form method="GET" action="dashboard_usuario.php" class="filter-bar">
+                <input type="text" name="zona" placeholder="Zona"
+                    value="<?= htmlspecialchars($_GET['zona'] ?? '') ?>">
+
+                <input type="number" name="precio_min" placeholder="Precio mínimo"
+                    value="<?= htmlspecialchars($_GET['precio_min'] ?? '') ?>">
+
+                <input type="number" name="precio_max" placeholder="Precio máximo"
+                    value="<?= htmlspecialchars($_GET['precio_max'] ?? '') ?>">
+
+                <input type="number" name="area_min" placeholder="Área mínima (m²)"
+                    value="<?= htmlspecialchars($_GET['area_min'] ?? '') ?>">
+
+                <input type="number" name="area_max" placeholder="Área máxima (m²)"
+                    value="<?= htmlspecialchars($_GET['area_max'] ?? '') ?>">
+
+                <button type="submit">Aplicar filtros</button>
+            </form>
+
+            
+            <!-- resumen de búsqueda -->
+            <?php if (!empty($_GET)): ?>
+                <p class="search-summary">
+                    Mostrando <?= $props->rowCount() ?> resultados 
+                    <?php if (!empty($_GET['q'])): ?>
+                        para "<strong><?= htmlspecialchars($_GET['q']) ?></strong>"
+                    <?php endif; ?>
+                </p>
+            <?php endif; ?>
+
+
             <!-- tarjetas de propiedades -->
-            <div class="card">
-                <div class="card-header">
-                    <span class="card-title">Propiedades disponibles</span>
-                </div>
- 
-                <div class="prop-grid">
-                <?php if($props->rowCount() == 0): ?>
-                    <p style="color:var(--color-text-secondary);padding:20px 0;grid-column:1/-1">
-                        No hay propiedades disponibles en este momento.
+            <?php if ($props->rowCount() == 0): ?>
+
+                <div class="card">
+                    <p style="padding:20px;color:#777">
+                        <?php if (!empty($_GET)): ?>
+                            No se encontraron propiedades con esos criterios.
+                        <?php else: ?>
+                            No hay propiedades disponibles en este momento.
+                        <?php endif; ?>
                     </p>
-                <?php else: ?>
-                    <?php while($p = $props->fetch(PDO::FETCH_ASSOC)): ?>
-                    <div class="prop-card">
-                        <div class="prop-img prop-img-<?= strtolower($p['tipo']) ?>">
-                            <span class="prop-img-placeholder">Sin foto</span>
-                            <span class="prop-tag tag-<?= strtolower($p['tipo']) ?>"><?= $p['tipo'] ?></span>
-                        </div>
-                        <div class="prop-body">
-                            <p class="prop-title"><?= htmlspecialchars($p['titulo']) ?></p>
-                            <p class="prop-zona"><?= htmlspecialchars($p['zona']) ?></p>
-                            <div class="prop-footer">
-                                <div>
-                                    <p class="prop-price">$<?= number_format($p['precio'], 0, ',', '.') ?></p>
-                                    <p class="prop-area"><?= $p['area'] ? $p['area'].' m²' : '—' ?></p>
-                                </div>
-                                <a href="detalle_propiedad.php?id=<?= $p['id'] ?>" class="btn-detalle">Ver detalle</a>
-                            </div>
-                        </div>
-                    </div>
-                    <?php endwhile; ?>
-                <?php endif; ?>
+
+                    <?php if (!empty($_GET['q'])): ?>
+                        <p style="padding:0 20px;color:#999">
+                            Mostrando 0 resultados para 
+                            "<strong><?= htmlspecialchars($_GET['q']) ?></strong>"
+                        </p>
+                    <?php endif; ?>
                 </div>
+
+            <?php else: ?>
+
+                <div class="card">
+                    <div class="card-header">
+                        <span class="card-title">Propiedades disponibles</span>
+                    </div>
+
+                    <div class="prop-grid">
+                        <?php while ($p = $props->fetch(PDO::FETCH_ASSOC)): ?>
+                            <div class="prop-card">
+                                <div class="prop-img prop-img-<?= strtolower($p['tipo']) ?>">
+                                    <span class="prop-tag tag-<?= strtolower($p['tipo']) ?>">
+                                        <?= $p['tipo'] ?>
+                                    </span>
+                                </div>
+                                <div class="prop-body">
+                                    <p class="prop-title"><?= htmlspecialchars($p['titulo']) ?></p>
+                                    <p class="prop-zona"><?= htmlspecialchars($p['zona']) ?></p>
+                                    <div class="prop-footer">
+                                        <p class="prop-price">
+                                            $<?= number_format($p['precio'], 0, ',', '.') ?>
+                                        </p>
+                                        <a href="detalle_propiedad.php?id=<?= $p['id'] ?>" class="btn-detalle">
+                                            Ver detalle
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endwhile; ?>
+                    </div>
+                </div>
+
+            <?php endif; ?>
+            
+
  
-            </div>
+
         </div>
     </div>
 </div>

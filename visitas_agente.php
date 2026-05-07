@@ -1,7 +1,6 @@
 <?php
 // Verifica que sea agente o admin
 require_once 'include/auth_agente.php';
-// Incluye conexión a BD
 include 'php/conexion_be.php';
 
 $agente_id     = $_SESSION['user_id'];
@@ -13,26 +12,32 @@ $filtro = (isset($_GET['estado']) && in_array($_GET['estado'], $estados_validos)
 
 $where = $filtro !== 'todas' ? "AND sv.estado='$filtro'" : '';
 
+// Consulta visitas con tipo de propiedad
 $visitas = $conexion->query(
-    "SELECT sv.*, p.titulo AS propiedad, p.zona, u.nombre AS cliente, u.correo AS correo_cliente
+    "SELECT sv.*, p.titulo AS propiedad, p.zona, p.tipo, 
+            u.nombre AS cliente, u.correo AS correo_cliente
      FROM solicitudes_visita sv
      JOIN propiedades p ON sv.propiedad_id = p.id
      JOIN usuarios u    ON sv.cliente_id   = u.id
      WHERE p.agente_id = $agente_id $where
-     ORDER BY sv.fecha_solicitada ASC");
+     ORDER BY sv.fecha_solicitada ASC"
+);
 ?>
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Visitas — Lorent</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="asscet/css/dashboard.css">
     <style>
         .filter-tag{display:inline-block;font-size:12px;padding:5px 14px;border:1px solid #dee2e6;border-radius:20px;color:#6c757d;margin-right:6px;transition:all 200ms}
         .filter-tag:hover{border-color:#46A2FD;color:#185FA5}
         .filter-tag.active{background:#E6F1FB;color:#185FA5;border-color:#85B7EB}
+
+        /* Badges por tipo */
+        .badge-venta { background:#E6F1FB; color:#185FA5; padding:2px 8px; border-radius:10px; font-size:11px; }
+        .badge-alquiler { background:#E8F5E9; color:#2E7D32; padding:2px 8px; border-radius:10px; font-size:11px; }
+        .badge-anticretico { background:#F3E5F5; color:#6A1B9A; padding:2px 8px; border-radius:10px; font-size:11px; }
     </style>
 </head>
 <body>
@@ -68,15 +73,25 @@ $visitas = $conexion->query(
                 </div>
                 <table>
                     <thead>
-                        <tr><th>Propiedad</th><th>Cliente</th><th>Correo</th><th>Fecha</th><th>Mensaje</th><th>Estado</th><th>Acción</th></tr>
+                        <tr>
+                            <th>Propiedad</th>
+                            <th>Tipo</th>
+                            <th>Cliente</th>
+                            <th>Correo</th>
+                            <th>Fecha</th>
+                            <th>Mensaje</th>
+                            <th>Estado</th>
+                            <th>Acción</th>
+                        </tr>
                     </thead>
                     <tbody>
                     <?php if($visitas->rowCount()==0): ?>
-                        <tr><td colspan="7" style="text-align:center;color:#6c757d;padding:20px">No hay solicitudes con ese filtro.</td></tr>
+                        <tr><td colspan="8" style="text-align:center;color:#6c757d;padding:20px">No hay solicitudes con ese filtro.</td></tr>
                     <?php else: ?>
                         <?php while($v=$visitas->fetch(PDO::FETCH_ASSOC)): ?>
                         <tr>
                             <td><?= htmlspecialchars($v['propiedad']) ?></td>
+                            <td><span class="badge badge-<?= strtolower($v['tipo']) ?>"><?= $v['tipo'] ?></span></td>
                             <td><?= htmlspecialchars($v['cliente']) ?></td>
                             <td style="font-size:12px;color:#6c757d"><?= htmlspecialchars($v['correo_cliente']) ?></td>
                             <td><?= $v['fecha_solicitada'] ?></td>
@@ -86,14 +101,15 @@ $visitas = $conexion->query(
                                 <span class="badge <?= $cls ?>"><?= ucfirst($v['estado']) ?></span>
                             </td>
                             <td>
-                                <?php if($v['estado']==='pendiente'): ?>
                                 <div class="action-btns">
-                                    <a href="php/confirmar_visita_be.php?id=<?= $v['id'] ?>&estado=confirmada" class="btn-edit">Confirmar</a>
-                                    <a href="php/confirmar_visita_be.php?id=<?= $v['id'] ?>&estado=cancelada"  class="btn-delete">Cancelar</a>
+                                    <?php if($v['estado']==='pendiente'): ?>
+                                        <a href="php/confirmar_visita_be.php?id=<?= $v['id'] ?>&estado=confirmada" class="btn-edit">Confirmar</a>
+                                        <a href="php/confirmar_visita_be.php?id=<?= $v['id'] ?>&estado=cancelada"  class="btn-delete">Cancelar</a>
+                                        <a href="registrar_cliente_interesado.php?propiedad_id=<?= $v['propiedad_id'] ?>&cliente_id=<?= $v['cliente_id'] ?>" class="btn-registrar">Registrar</a>
+                                    <?php else: ?>
+                                        <span style="font-size:12px;color:#6c757d">—</span>
+                                    <?php endif; ?>
                                 </div>
-                                <?php else: ?>
-                                <span style="font-size:12px;color:#6c757d">—</span>
-                                <?php endif; ?>
                             </td>
                         </tr>
                         <?php endwhile; ?>

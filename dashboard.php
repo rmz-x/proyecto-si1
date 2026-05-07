@@ -103,6 +103,18 @@ $ultimas = $conexion->query(
                 </table>
             </div>
 
+
+            <!-- Prospectos CRM -->
+            <div class="card" style="margin-top:20px; text-align:center">
+                <div class="card-header">
+                    <span class="card-title">Prospectos CRM</span>
+                </div>
+                <div class="card-body">
+                    <a href="prospectos_crm.php" class="btn-primary">Gestionar Prospectos</a>
+                </div>
+            </div>
+
+
         </div>
     </div>
 </div>

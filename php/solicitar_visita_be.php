@@ -1,33 +1,46 @@
 <?php
-// Inicia sesión
 session_start();
-// Verifica si el usuario está logueado
-if (!isset($_SESSION['usuario'])) { header("location: ../index.php"); exit(); }
-// Incluye conexión a BD
+if (!isset($_SESSION['usuario'])) { 
+    header("location: ../index.php"); 
+    exit(); 
+}
+
 include 'conexion_be.php';
-// Incluye función para registrar actividad
 require_once '../include/actividad.php';
 
-// Obtiene datos del formulario
 $propiedad_id = (int)$_POST['propiedad_id'];
 $cliente_id   = (int)$_SESSION['user_id'];
-$fecha        = $_POST['fecha'];
+$fecha = $_POST['fecha'];   // ej: 2026-05-07
+$hora  = $_POST['hora'];    // ej: 18:30
+
+$fecha_solicitada = $fecha . ' ' . $hora; // "2026-05-07 18:30"
+
+$telefono     = $_POST['telefono'];
 $mensaje      = trim($_POST['mensaje']);
 
-// Obtiene título de la propiedad para el log
-$info = $conexion->query("SELECT titulo FROM propiedades WHERE id=$propiedad_id")->fetch(PDO::FETCH_ASSOC);
-$tituloPropiedad = $info['titulo'] ?? "ID $propiedad_id";
+// Inserta la solicitud de visita con todos los datos
+$stmt = $conexion->prepare("
+    INSERT INTO solicitudes_visita (cliente_id, propiedad_id, fecha_solicitada, telefono, mensaje)
+    VALUES (:cliente_id, :propiedad_id, :fecha_solicitada, :telefono, :mensaje)
+");
+if ($stmt->execute([
+    ':cliente_id'      => $cliente_id,
+    ':propiedad_id'    => $propiedad_id,
+    ':fecha_solicitada'=> $fecha_solicitada, // aquí va fecha + hora
+    ':telefono'        => $telefono,
+    ':mensaje'         => $mensaje
+])) {
+    // Log de actividad
+    $info = $conexion->query("SELECT titulo FROM propiedades WHERE id=$propiedad_id")->fetch(PDO::FETCH_ASSOC);
+    $tituloPropiedad = $info['titulo'] ?? "ID $propiedad_id";
 
-// Inserta la solicitud de visita
-$stmt = $conexion->prepare(
-    "INSERT INTO solicitudes_visita (propiedad_id, cliente_id, fecha_solicitada, mensaje) VALUES (?, ?, ?, ?)"
-);
-
-if ($stmt->execute([$propiedad_id, $cliente_id, $fecha, $mensaje])) {
     registrarActividad($conexion, 'Solicitud de visita enviada',
-        "Cliente solicitó visita para \"$tituloPropiedad\" el $fecha.");
+        "Cliente solicitó visita para \"$tituloPropiedad\" el $fecha_solicitada.");
+
     header("location: ../ver_propiedades.php?msg=visita_ok");
+    exit();
 } else {
     echo '<script>alert("Error al enviar la solicitud.");window.history.back();</script>';
 }
+
 ?>

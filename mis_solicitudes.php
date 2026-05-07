@@ -79,7 +79,7 @@ $solicitudes = $conexion->query(
                             <td><?= htmlspecialchars($s['propiedad']) ?></td>
                             <td><?= htmlspecialchars($s['zona']) ?></td>
                             <td><?= $s['tipo'] ?></td>
-                            <td><?= date('d/m/Y', strtotime($s['fecha_solicitada'])) ?></td>
+                            <td><?= date('d/m/Y H:i', strtotime($s['fecha_solicitada'])) ?></td>
                             <td style="max-width:200px;color:#6c757d">
                                 <?= htmlspecialchars(substr($s['mensaje'],0,60)) ?>...
                             </td>

@@ -52,7 +52,7 @@ $rol     = $_SESSION['rol'] ?? 'cliente';
             <span class="nav-dot" style="background:#FAC775"></span>Agenda / Visitas
         </a>
         <!-- Enlace a reportes del asistente -->
-        <a href="reportes_asistente.php"  class="nav-item <?= $current=='reportes_asistente.php'?'active':'' ?>">
+        <a href="reportes.php"  class="nav-item <?= $current=='reportes.php'?'active':'' ?>">
             <span class="nav-dot" style="background:#AFA9EC"></span>Reportes
         </a>
 

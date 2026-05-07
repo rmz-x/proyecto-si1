@@ -10,7 +10,11 @@ $nombreUsuario = $_SESSION['nombre'] ?? $_SESSION['usuario'];
 // Estadísticas generales para el asistente
 $total_clientes  = $conexion->query("SELECT COUNT(*) AS n FROM usuarios WHERE rol='cliente'")->fetch(PDO::FETCH_ASSOC)['n'];
 $visitas_pend    = $conexion->query("SELECT COUNT(*) AS n FROM solicitudes_visita WHERE estado='pendiente'")->fetch(PDO::FETCH_ASSOC)['n'];
-$visitas_hoy     = $conexion->query("SELECT COUNT(*) AS n FROM solicitudes_visita WHERE fecha_solicitada=CURDATE()")->fetch(PDO::FETCH_ASSOC)['n'];
+$visitas_hoy = $conexion->query(
+    "SELECT COUNT(*) AS n 
+     FROM solicitudes_visita 
+     WHERE fecha_solicitada = CURRENT_DATE"
+)->fetch(PDO::FETCH_ASSOC)['n'];
 $total_props     = $conexion->query("SELECT COUNT(*) AS n FROM propiedades WHERE estado='Disponible'")->fetch(PDO::FETCH_ASSOC)['n'];
 
 // Últimas solicitudes de visita

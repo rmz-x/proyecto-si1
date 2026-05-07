@@ -123,16 +123,31 @@ $nombreUsuario = $_SESSION['nombre'] ?? $_SESSION['usuario'];
                     <p style="font-size:15px;font-weight:600;color:#0f4c75;margin-bottom:16px">Solicitar visita</p>
                     <form action="php/solicitar_visita_be.php" method="POST">
                         <input type="hidden" name="propiedad_id" value="<?= $prop['id'] ?>">
+                        
                         <div class="form-group">
                             <label>Fecha preferida</label>
                             <input type="date" name="fecha" min="<?= date('Y-m-d') ?>" required>
                         </div>
+
+                        <div class="form-group">
+                            <label>Hora preferida</label>
+                            <input type="time" name="hora" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Número de teléfono</label>
+                            <input type="tel" name="telefono" placeholder="Ej: 70012345" 
+                                pattern="[0-9]{8,12}" required>
+                        </div>
+
                         <div class="form-group">
                             <label>Mensaje al agente</label>
                             <textarea name="mensaje" rows="4" placeholder="Escribe tus preferencias o preguntas..." required></textarea>
                         </div>
+
                         <button type="submit" class="btn-primary" style="width:100%">Enviar solicitud</button>
                     </form>
+
                 </div>
                 <?php else: ?>
                 <div class="card" style="text-align:center;color:#6c757d;padding:30px">

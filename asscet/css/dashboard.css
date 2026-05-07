@@ -286,3 +286,48 @@ tr:hover td { background: #f8f9fa; }
     .main { margin-left:60px; }
     .form-grid { grid-template-columns:1fr; }
 }
+
+/* Boton Registrar Cliente*/
+.btn-registrar {
+    display:inline-block;
+    padding:6px 12px;
+    background-color:#28a745; /* verde base */
+    color:#fff;
+    font-size:13px;
+    font-weight:500;
+    border-radius:4px;
+    text-decoration:none;
+    transition:all 0.3s ease;
+    box-shadow:0 0 0 rgba(0,0,0,0); /* sin sombra inicial */
+}
+
+.btn-registrar:hover {
+    background-color:#218838; /* verde más oscuro */
+    box-shadow:0 0 12px rgba(40,167,69,0.6); /* efecto luz verde */
+    transform:translateY(-1px); /* leve levantamiento */
+}
+
+.badge-venta { background:#E6F1FB; color:#185FA5; }
+.badge-alquiler { background:#E8F5E9; color:#2E7D32; }
+.badge-anticretico { background:#F3E5F5; color:#6A1B9A; }
+
+
+/* Confirmar Cancelar Registrar*/
+.action-btns {
+    display: flex;
+    justify-content: center; /* centra horizontalmente */
+    gap: 8px; /* espacio entre botones */
+}
+
+/* Centrar columna Acción */
+table th:last-child,
+table td:last-child {
+    text-align: center;
+}
+
+.action-btns {
+    display: flex;
+    justify-content: center; 
+    gap: 8px;                
+}
+
